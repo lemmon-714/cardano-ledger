@@ -48,21 +48,25 @@ library
   build-depends:       aeson
                      , base >=4.11 && <5
                      , bytestring
+                     , cardano-prelude
                      , cborg
                      , containers
-                     , vector-map
                      , cryptonite
                      , deepseq
                      , formatting
-                     , mtl
                      , microlens
+                     , mtl
                      , nothunks
                      , primitive
+                     , reflection
                      , strict-containers
+                     , tagged
                      , text
+                     , time
                      , transformers >= 0.5
                      , vector
                      , QuickCheck
+                     , vector-map
                      -- IOHK deps
                      , cardano-crypto-class
                      , cardano-binary
