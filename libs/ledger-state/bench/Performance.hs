@@ -57,7 +57,7 @@ main = do
       pp :: PParams CurrentEra
       pp = def
       !globals = mkGlobals genesis pp
-      !slotNo = SlotNo 156953303 -- I found this by trial and error to get epoch 363, I do not know why this doesn't align with mainnet. byron somehow?
+      !slotNo = SlotNo 0 -- I found this by trial and error to get epoch 363, I do not know why this doesn't align with mainnet. byron somehow?
       applyTx' mempoolEnv mempoolState =
         either (error . show) seqTuple
           . applyTx globals mempoolEnv mempoolState
