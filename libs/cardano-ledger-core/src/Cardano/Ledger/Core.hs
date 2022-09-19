@@ -81,7 +81,7 @@ import Cardano.Binary (Annotator, FromCBOR (..), ToCBOR (..))
 import qualified Cardano.Crypto.Hash as Hash
 import Cardano.Ledger.Address (Addr (..), BootstrapAddress)
 import Cardano.Ledger.AuxiliaryData (AuxiliaryDataHash)
-import Cardano.Ledger.BaseTypes (ProtVer)
+import Cardano.Ledger.BaseTypes (ProtVer, NonNegativeInterval, UnitInterval, Nonce (..))
 import Cardano.Ledger.Coin (Coin)
 import Cardano.Ledger.CompactAddress (CompactAddr, compactAddr, decompactAddr, isBootstrapCompactAddr)
 import Cardano.Ledger.Compactible (Compactible (..))
@@ -115,6 +115,9 @@ import GHC.Stack (HasCallStack)
 import GHC.TypeLits
 import Lens.Micro
 import NoThunks.Class (NoThunks)
+import Numeric.Natural (Natural)
+import Cardano.Ledger.Slot (EpochNo(..))
+import qualified Cardano.Ledger.BaseTypes as BT
 
 --------------------------------------------------------------------------------
 -- Era
@@ -400,7 +403,45 @@ class
   -- | The type of updates to Protocol parameters
   type PParamsUpdate era = (r :: Type) | r -> era
 
+  emptyPParams :: PParams era
+  emptyPParamsUpdate :: PParamsUpdate era
+
   applyPPUpdates :: PParams era -> PParamsUpdate era -> PParams era
+
+  -- | The linear factor for the minimum fee calculation
+  ppMinFeeAL :: Lens' (PParams era) Natural
+  -- | The constant factor for the minimum fee calculation
+  ppMinFeeBL :: Lens' (PParams era) Natural
+  -- | Maximal block body size
+  maxBBSizeL :: Lens' (PParams era) Natural
+  -- | Maximal transaction size
+  maxTxSizeL :: Lens' (PParams era) Natural
+  -- | Maximal block header size
+  maxBHSizeL :: Lens' (PParams era) Natural
+  -- | The amount of a key registration deposit
+  keyDepositL :: Lens' (PParams era) Coin
+  -- | The amount of a pool registration deposit
+  poolDepositL :: Lens' (PParams era) Coin
+  -- | epoch bound on pool retirement
+  eMaxL :: Lens' (PParams era) EpochNo
+  -- | Desired number of pools
+  nOptL :: Lens' (PParams era) Natural
+  -- | Pool influence
+  a0L :: Lens' (PParams era) NonNegativeInterval
+  -- | Monetary expansion
+  rhoL :: Lens' (PParams era) UnitInterval
+  -- | Treasury expansion
+  tauL :: Lens' (PParams era) UnitInterval
+  -- | Decentralization parameter
+  dL :: Lens' (PParams era) UnitInterval
+  -- | Extra entropy
+  extraEntropyL :: Lens' (PParams era) Nonce
+  -- | Protocol version
+  protocolVersionL :: Lens' (PParams era) BT.ProtVer
+  -- | Minimum UTxO value
+  minUTxOValueL :: Lens' (PParams era) Coin
+  -- | Minimum Stake Pool Cost
+  minPoolCostL :: Lens' (PParams era) Coin
 
 type PParamsDelta era = PParamsUpdate era
 

@@ -23,7 +23,7 @@ import Cardano.Ledger.Core
 import Cardano.Ledger.Crypto as CC (Crypto)
 import Cardano.Ledger.Mary.Value (MaryValue (..), MultiAsset (..), policies, policyID)
 import qualified Cardano.Ledger.Shelley.API as API
-import Cardano.Ledger.Shelley.PParams (ShelleyPParams, ShelleyPParamsUpdate, updatePParams)
+import Cardano.Ledger.Shelley.PParams (ShelleyPParams, ShelleyPParamsUpdate, updatePParams, ShelleyPParamsHKD (..))
 import Cardano.Ledger.Shelley.Rules
   ( ShelleyBBODY,
     ShelleyEPOCH,
@@ -41,6 +41,8 @@ import Data.Set as Set (Set, empty, map)
 import Data.Typeable (Typeable)
 import GHC.TypeLits
 import NoThunks.Class (NoThunks)
+import Lens.Micro (lens)
+import Data.Default (def)
 
 type MaryEra = ShelleyMAEra 'Mary
 
@@ -111,7 +113,28 @@ instance MAClass ma c => EraPParams (ShelleyMAEra ma c) where
   type PParams (ShelleyMAEra ma c) = ShelleyPParams (ShelleyMAEra ma c)
   type PParamsUpdate (ShelleyMAEra ma c) = ShelleyPParamsUpdate (ShelleyMAEra ma c)
 
+  emptyPParams = def
+  emptyPParamsUpdate = def
+
   applyPPUpdates = updatePParams
+
+  ppMinFeeAL = lens _minfeeA $ \pp x -> pp{_minfeeA = x}
+  ppMinFeeBL = lens _minfeeB $ \pp x -> pp{_minfeeB = x}
+  maxBBSizeL = lens _maxBBSize $ \pp x -> pp{_maxBBSize = x}
+  maxTxSizeL = lens _maxTxSize $ \pp x -> pp{_maxTxSize = x}
+  maxBHSizeL = lens _maxBHSize $ \pp x -> pp{_maxBHSize = x}
+  keyDepositL = lens _keyDeposit $ \pp x -> pp{_keyDeposit = x}
+  poolDepositL = lens _poolDeposit $ \pp x -> pp{_poolDeposit = x}
+  eMaxL = lens _eMax $ \pp x -> pp{_eMax = x}
+  nOptL = lens _nOpt $ \pp x -> pp{_nOpt = x}
+  a0L = lens _a0 $ \pp x -> pp{_a0 = x}
+  rhoL = lens _rho $ \pp x -> pp{_rho = x}
+  tauL = lens _tau $ \pp x -> pp{_tau = x}
+  dL = lens _d $ \pp x -> pp{_d = x}
+  extraEntropyL = lens _extraEntropy $ \pp x -> pp{_extraEntropy = x}
+  protocolVersionL = lens _protocolVersion $ \pp x -> pp{_protocolVersion = x}
+  minUTxOValueL = lens _minUTxOValue $ \pp x -> pp{_minUTxOValue = x}
+  minPoolCostL = lens _minPoolCost $ \pp x -> pp{_minPoolCost = x}
 
 -- These rules are all inherited from Shelley
 

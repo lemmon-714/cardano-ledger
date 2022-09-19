@@ -181,7 +181,28 @@ instance CC.Crypto c => EraPParams (AlonzoEra c) where
   type PParams (AlonzoEra c) = AlonzoPParams (AlonzoEra c)
   type PParamsUpdate (AlonzoEra c) = AlonzoPParamsUpdate (AlonzoEra c)
 
+  emptyPParams = def
+  emptyPParamsUpdate = def
+
   applyPPUpdates = updatePParams
+
+  ppMinFeeAL = lens _minfeeA $ \pp x -> pp{_minfeeA = x}
+  ppMinFeeBL = lens _minfeeB $ \pp x -> pp{_minfeeB = x}
+  maxBBSizeL = lens _maxBBSize $ \pp x -> pp{_maxBBSize = x}
+  maxTxSizeL = lens _maxTxSize $ \pp x -> pp{_maxTxSize = x}
+  maxBHSizeL = lens _maxBHSize $ \pp x -> pp{_maxBHSize = x}
+  keyDepositL = lens _keyDeposit $ \pp x -> pp{_keyDeposit = x}
+  poolDepositL = lens _poolDeposit $ \pp x -> pp{_poolDeposit = x}
+  eMaxL = lens _eMax $ \pp x -> pp{_eMax = x}
+  nOptL = lens _nOpt $ \pp x -> pp{_nOpt = x}
+  a0L = lens _a0 $ \pp x -> pp{_a0 = x}
+  rhoL = lens _rho $ \pp x -> pp{_rho = x}
+  tauL = lens _tau $ \pp x -> pp{_tau = x}
+  dL = lens _d $ \pp x -> pp{_d = x}
+  extraEntropyL = lens _extraEntropy $ \pp x -> pp{_extraEntropy = x}
+  protocolVersionL = lens _protocolVersion $ \pp x -> pp{_protocolVersion = x}
+  minUTxOValueL = lens _minUTxOValue $ \pp x -> pp{_minUTxOValue = x}
+  minPoolCostL = lens _minPoolCost $ \pp x -> pp{_minPoolCost = x}
 
 deriving instance Eq (PParams' Identity era)
 

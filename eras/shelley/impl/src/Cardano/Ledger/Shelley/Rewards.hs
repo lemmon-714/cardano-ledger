@@ -69,6 +69,7 @@ import GHC.Records (HasField (getField))
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
 import Quiet
+import Cardano.Ledger.Shelley.RewardUpdate (FreeVars(..))
 
 -- | StakeShare type
 newtype StakeShare = StakeShare {unStakeShare :: Rational}
@@ -280,7 +281,7 @@ notPoolOwner pp pps = \case
 rewardOnePoolMember ::
   HasField "_protocolVersion" pp ProtVer =>
   -- | The protocol parameters
-  pp ->
+  FreeVars c ->
   -- | The total amount of stake in the system
   Coin ->
   -- | The set of registered stake credentials
