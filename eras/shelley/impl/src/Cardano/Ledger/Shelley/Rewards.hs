@@ -34,7 +34,6 @@ import Cardano.Binary
 import Cardano.Ledger.BaseTypes
   ( BlocksMade (..),
     BoundedRational (..),
-    NonNegativeInterval,
     ProtVer,
     UnitInterval,
     invalidKey,
@@ -65,11 +64,10 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.VMap as VMap
 import GHC.Generics (Generic)
-import GHC.Records (HasField (getField))
+import Lens.Micro ((^.))
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
 import Quiet
-import Cardano.Ledger.Shelley.RewardUpdate (FreeVars(..))
 
 -- | StakeShare type
 newtype StakeShare = StakeShare {unStakeShare :: Rational}
@@ -102,9 +100,9 @@ leaderRew ::
 leaderRew f pool (StakeShare s) (StakeShare sigma)
   | f <= c = f
   | otherwise =
-      c
-        <> rationalToCoinViaFloor
-          (coinToRational (f <-> c) * (m' + (1 - m') * s / sigma))
+    c
+      <> rationalToCoinViaFloor
+        (coinToRational (f <-> c) * (m' + (1 - m') * s / sigma))
   where
     (c, m, _) = poolSpec pool
     m' = unboundRational m
@@ -119,8 +117,8 @@ memberRew ::
 memberRew (Coin f') pool (StakeShare t) (StakeShare sigma)
   | f' <= c = mempty
   | otherwise =
-      rationalToCoinViaFloor $
-        fromIntegral (f' - c) * (1 - m') * t / sigma
+    rationalToCoinViaFloor $
+      fromIntegral (f' - c) * (1 - m') * t / sigma
   where
     (Coin c, m, _) = poolSpec pool
     m' = unboundRational m
@@ -172,9 +170,8 @@ instance CC.Crypto c => FromCBOR (Reward c) where
     decode $ RecD Reward <! From <! From <! From
 
 sumRewards ::
-  forall c pp.
-  (HasField "_protocolVersion" pp ProtVer) =>
-  pp ->
+  forall c.
+  ProtVer ->
   Map (Credential 'Staking c) (Set (Reward c)) ->
   Coin
 sumRewards protocolVersion rs = fold $ aggregateRewards protocolVersion rs
@@ -183,9 +180,8 @@ sumRewards protocolVersion rs = fold $ aggregateRewards protocolVersion rs
 -- function exists since in Shelley, a stake credential earning rewards from
 -- multiple sources would only receive one reward.
 filterRewards ::
-  forall c pp.
-  (HasField "_protocolVersion" pp ProtVer) =>
-  pp ->
+  forall c.
+  ProtVer ->
   Map (Credential 'Staking c) (Set (Reward c)) ->
   ( Map (Credential 'Staking c) (Set (Reward c)),
     Map (Credential 'Staking c) (Set (Reward c))
@@ -198,9 +194,8 @@ filterRewards pp rewards =
        in (Map.map (Set.singleton . fst) mp, Map.filter (not . Set.null) $ Map.map snd mp)
 
 aggregateRewards ::
-  forall c pp.
-  (HasField "_protocolVersion" pp ProtVer) =>
-  pp ->
+  forall c.
+  ProtVer ->
   Map (Credential 'Staking c) (Set (Reward c)) ->
   Map (Credential 'Staking c) Coin
 aggregateRewards pp rewards =
@@ -268,8 +263,7 @@ instance CC.Crypto c => FromCBOR (PoolRewardInfo c) where
       )
 
 notPoolOwner ::
-  HasField "_protocolVersion" pp ProtVer =>
-  pp ->
+  ProtVer ->
   PoolParams c ->
   Credential 'Staking c ->
   Bool
@@ -279,9 +273,8 @@ notPoolOwner pp pps = \case
 
 -- | The stake pool member reward calculation
 rewardOnePoolMember ::
-  HasField "_protocolVersion" pp ProtVer =>
-  -- | The protocol parameters
-  FreeVars c ->
+  -- | The protocol version
+  ProtVer ->
   -- | The total amount of stake in the system
   Coin ->
   -- | The set of registered stake credentials
@@ -324,9 +317,7 @@ rewardOnePoolMember
 -- the ranking information out of the ledger code and into a separate service,
 -- and at that point we can simplify this function to not care about ranking.
 mkPoolRewardInfo ::
-  ( HasField "_d" (PParams era) UnitInterval,
-    HasField "_a0" (PParams era) NonNegativeInterval,
-    HasField "_nOpt" (PParams era) Natural
+  ( EraPParams era
   ) =>
   PParams era ->
   Coin ->
@@ -382,9 +373,9 @@ mkPoolRewardInfo
               }
        in Right $! rewardInfo
     where
-      pp_d = getField @"_d" pp
-      pp_a0 = getField @"_a0" pp
-      pp_nOpt = getField @"_nOpt" pp
+      pp_d = pp ^. dL
+      pp_a0 = pp ^. a0L
+      pp_nOpt = pp ^. nOptL
       Coin pstakeTot = Map.findWithDefault mempty (_poolId pool) stakePerPool
       accOwnerStake c o = maybe c (c <>) $ do
         hk <- VMap.lookup (KeyHashObj o) delegs

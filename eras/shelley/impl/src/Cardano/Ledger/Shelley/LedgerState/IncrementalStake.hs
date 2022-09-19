@@ -13,9 +13,6 @@ module Cardano.Ledger.Shelley.LedgerState.IncrementalStake
 where
 
 import Cardano.Ledger.Address (Addr (..))
-import Cardano.Ledger.BaseTypes
-  ( ProtVer (..),
-  )
 import Cardano.Ledger.Coin
   ( Coin (..),
     addDeltaCoin,
@@ -66,7 +63,6 @@ import qualified Data.Map.Strict as Map
 import Data.Set (Set)
 import qualified Data.UMap as UM
 import qualified Data.VMap as VMap
-import GHC.Records (HasField (..))
 import Lens.Micro
 
 -- | Incrementally add the inserts 'utxoAdd' and the deletes 'utxoDel' to the IncrementalStake.
@@ -113,7 +109,7 @@ incrementalAggregateUtxoCoinByCredential mode (UTxO u) initial =
             _other -> ans
 
 filterAllRewards ::
-  ( HasField "_protocolVersion" (PParams era) ProtVer
+  ( EraPParams era
   ) =>
   Map (Credential 'Staking (EraCrypto era)) (Set (Reward (EraCrypto era))) ->
   EpochState era ->
@@ -131,9 +127,9 @@ filterAllRewards rs' (EpochState _as _ss ls pr _pp _nm) =
       Map.partitionWithKey
         (\k _ -> eval (k ∈ dom (rewards dState)))
         rs'
-    totalUnregistered = fold $ aggregateRewards pr unregRU
+    totalUnregistered = fold $ aggregateRewards (pr ^. protocolVersionL) unregRU
     unregistered = Map.keysSet unregRU
-    (registered, eraIgnored) = filterRewards pr regRU
+    (registered, eraIgnored) = filterRewards (pr ^. protocolVersionL) regRU
 
 -- | Aggregate active stake by merging two maps. The triple map from the
 --   UnifiedMap, and the IncrementalStake Only keep the active stake. Active can
@@ -187,8 +183,7 @@ smartUTxOState utxo c1 c2 st =
 --
 -- TO IncrementalStake
 applyRUpd ::
-  ( HasField "_protocolVersion" (PParams era) ProtVer
-  ) =>
+  EraPParams era =>
   RewardUpdate (EraCrypto era) ->
   EpochState era ->
   EpochState era
@@ -198,7 +193,7 @@ applyRUpd ru es =
 
 -- TO IncrementalStake
 applyRUpd' ::
-  ( HasField "_protocolVersion" (PParams era) ProtVer
+  ( EraPParams era
   ) =>
   RewardUpdate (EraCrypto era) ->
   EpochState era ->
@@ -217,7 +212,7 @@ applyRUpd'
       dState = dpsDState delegState
       (registered, eraIgnored, unregistered, totalUnregistered) =
         filterAllRewards (rs ru) es
-      registeredAggregated = aggregateRewards pp registered
+      registeredAggregated = aggregateRewards (pp ^. protocolVersionL) registered
       as' =
         as
           { _treasury = addDeltaCoin (_treasury as) (deltaT ru) <> totalUnregistered,
