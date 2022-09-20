@@ -120,7 +120,7 @@ poolReapTransition = do
   let retired :: Set (KeyHash 'StakePool (EraCrypto era))
       retired = eval (dom (_retiring ps ▷ setSingleton e))
       pr :: Map.Map (KeyHash 'StakePool (EraCrypto era)) Coin
-      pr = Map.fromSet (const (pp ^. poolDepositL)) retired
+      pr = Map.fromSet (const (pp ^. ppPoolDepositL)) retired
       rewardAcnts :: Map.Map (KeyHash 'StakePool (EraCrypto era)) (RewardAcnt (EraCrypto era))
       rewardAcnts = Map.map _poolRAcnt $ eval (retired ◁ _pParams ps)
       rewardAcnts_ :: Map.Map (KeyHash 'StakePool (EraCrypto era)) (RewardAcnt (EraCrypto era), Coin)

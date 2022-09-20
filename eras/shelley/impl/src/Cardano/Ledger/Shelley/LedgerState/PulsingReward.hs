@@ -133,9 +133,9 @@ startStep slotsPerEpoch b@(BlocksMade b') es@(EpochState acnt ss ls pr _ nm) max
       deltaR1 =
         rationalToCoinViaFloor $
           min 1 eta
-            * unboundRational (pr ^. rhoL)
+            * unboundRational (pr ^. ppRhoL)
             * fromIntegral reserves
-      d = unboundRational (pr ^. dL)
+      d = unboundRational (pr ^. ppDL)
       expectedBlocks =
         floor $
           (1 - d) * unboundRational (activeSlotVal asc) * fromIntegral slotsPerEpoch
@@ -143,10 +143,10 @@ startStep slotsPerEpoch b@(BlocksMade b') es@(EpochState acnt ss ls pr _ nm) max
       -- it would be nice to not have to compute expectedBlocks every epoch
       blocksMade = fromIntegral $ Map.foldr (+) 0 b' :: Integer
       eta
-        | unboundRational (pr ^. dL) >= 0.8 = 1
+        | unboundRational (pr ^. ppDL) >= 0.8 = 1
         | otherwise = blocksMade % expectedBlocks
       Coin rPot = _feeSS ss <> deltaR1
-      deltaT1 = floor $ unboundRational (pr ^. tauL) * fromIntegral rPot
+      deltaT1 = floor $ unboundRational (pr ^. ppTauL) * fromIntegral rPot
       _R = Coin $ rPot - deltaT1
       -- We now compute stake pool specific values that are needed for computing
       -- member and leader rewards.
@@ -178,20 +178,20 @@ startStep slotsPerEpoch b@(BlocksMade b') es@(EpochState acnt ss ls pr _ nm) max
         Left (StakeShare sigma) ->
           likelihood
             0
-            (leaderProbability asc sigma $ pr ^. dL)
+            (leaderProbability asc sigma $ pr ^. ppDL)
             slotsPerEpoch
         -- This pool produced at least one block this epoch
         Right info ->
           likelihood
             (poolBlocks info)
-            (leaderProbability asc (getSigma info) $ pr ^. dL)
+            (leaderProbability asc (getSigma info) $ pr ^. ppDL)
             slotsPerEpoch
       newLikelihoods = VMap.toMap $ VMap.map makeLikelihoods allPoolInfo
       -- We now compute the leader rewards for each stake pool.
       collectLRs acc poolRI =
         let rewardAcnt = getRwdCred . _poolRAcnt . poolPs $ poolRI
             packageLeaderReward = Set.singleton . leaderRewardToGeneral . poolLeaderReward
-         in if HardForks.forgoRewardPrefilter (pr ^. protocolVersionL) || rewardAcnt `UM.member` rewards ds
+         in if HardForks.forgoRewardPrefilter (pr ^. ppProtocolVersionL) || rewardAcnt `UM.member` rewards ds
               then
                 Map.insertWith
                   Set.union
@@ -204,7 +204,7 @@ startStep slotsPerEpoch b@(BlocksMade b') es@(EpochState acnt ss ls pr _ nm) max
       rewsnap =
         RewardSnapShot
           { rewFees = _feeSS ss,
-            rewprotocolVersion = pr ^. protocolVersionL,
+            rewprotocolVersion = pr ^. ppProtocolVersionL,
             rewNonMyopic = nm,
             rewDeltaR1 = deltaR1,
             rewR = _R,
@@ -219,7 +219,7 @@ startStep slotsPerEpoch b@(BlocksMade b') es@(EpochState acnt ss ls pr _ nm) max
           delegs'
           (UM.domain $ rewards ds)
           (unCoin _totalStake)
-          (pr ^. protocolVersionL)
+          (pr ^. ppProtocolVersionL)
           blockProducingPoolInfo
       pulser :: Pulser (EraCrypto era)
       pulser =

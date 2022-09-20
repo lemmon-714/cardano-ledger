@@ -17,7 +17,7 @@ module Cardano.Ledger.Shelley.Rules.Newpp
   )
 where
 
-import Cardano.Ledger.BaseTypes (ShelleyBase, StrictMaybe (..))
+import Cardano.Ledger.BaseTypes (ShelleyBase)
 import Cardano.Ledger.Coin (Coin (..))
 import Cardano.Ledger.Core
 import Cardano.Ledger.Shelley.EpochBoundary (obligation)
@@ -35,7 +35,7 @@ import Cardano.Ledger.Shelley.LedgerState
   )
 import Cardano.Ledger.Shelley.PParams
   ( ProposedPPUpdates (..),
-    emptyPPPUpdates, ShelleyPParamsHKD (..)
+    emptyPPPUpdates
   )
 import Cardano.Ledger.Shelley.TxBody (MIRPot (..))
 import Control.State.Transition
@@ -113,8 +113,8 @@ newPpTransition = do
         -- Note that instantaneous rewards from the treasury are irrelevant
         -- here, since changes in the protocol parameters do not change how much
         -- is needed from the treasury
-        && (ppNew' ^. maxTxSizeL + ppNew' ^. maxBHSizeL)
-          < ppNew' ^. maxBBSizeL
+        && (ppNew' ^. ppMaxTxSizeL + ppNew' ^. ppMaxBHSizeL)
+          < ppNew' ^. ppMaxBBSizeL
         then pure $ NewppState ppNew' (updatePpup ppupSt ppNew')
         else pure $ NewppState pp (updatePpup ppupSt pp)
     Nothing -> pure $ NewppState pp (updatePpup ppupSt pp)
@@ -132,7 +132,7 @@ updatePpup ppupSt pp = PPUPState ps emptyPPPUpdates
   where
     ProposedPPUpdates newProposals = futureProposals ppupSt
     goodPV ppu =
-      pvCanFollow (pp ^. protocolVersionL) $ protocolVersion @StrictMaybe @era ppu
+      pvCanFollow (pp ^. ppProtocolVersionL) $ ppu ^. ppuProtocolVersionL
     ps =
       if all goodPV newProposals
         then ProposedPPUpdates newProposals

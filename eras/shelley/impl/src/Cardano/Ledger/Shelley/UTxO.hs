@@ -278,8 +278,8 @@ totalDeposits ::
   [DCert c] ->
   Coin
 totalDeposits pp isNewPool certs =
-  (numKeys <×> pp ^. keyDepositL)
-    <+> (numNewPools <×> pp ^. poolDepositL)
+  (numKeys <×> pp ^. ppKeyDepositL)
+    <+> (numNewPools <×> pp ^. ppPoolDepositL)
   where
     numKeys = length $ filter isRegKey certs
     pools = Set.fromList $ Maybe.mapMaybe getKeyHashFromRegPool certs
@@ -398,7 +398,7 @@ keyRefunds ::
   ) =>PParams era ->
   TxBody era ->
   Coin
-keyRefunds pp tx = length deregistrations <×> pp ^. keyDepositL
+keyRefunds pp tx = length deregistrations <×> pp ^. ppKeyDepositL
   where
     deregistrations = filter isDeRegKey (toList $ tx ^. certsTxBodyL)
 

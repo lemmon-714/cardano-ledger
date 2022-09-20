@@ -408,7 +408,7 @@ validateMissingScripts ::
   Set (ScriptHash (EraCrypto era)) ->
   Test (ShelleyUtxowPredFailure era)
 validateMissingScripts pp (ShelleyScriptsNeeded sNeeded) sReceived =
-  if HardForks.missingScriptsSymmetricDifference (pp ^. protocolVersionL)
+  if HardForks.missingScriptsSymmetricDifference (pp ^. ppProtocolVersionL)
     then
       sequenceA_
         [ failureUnless (sNeeded `Set.isSubsetOf` sReceived) $
@@ -559,7 +559,7 @@ validateMetadata ::
   Test (ShelleyUtxowPredFailure era)
 validateMetadata pp tx =
   let txBody = tx ^. bodyTxL
-      pv = pp ^. protocolVersionL
+      pv = pp ^. ppProtocolVersionL
    in case (txBody ^. auxDataHashTxBodyL, tx ^. auxDataTxL) of
         (SNothing, SNothing) -> pure ()
         (SJust mdh, SNothing) -> failure $ MissingTxMetadata mdh

@@ -127,9 +127,9 @@ filterAllRewards rs' (EpochState _as _ss ls pr _pp _nm) =
       Map.partitionWithKey
         (\k _ -> eval (k ∈ dom (rewards dState)))
         rs'
-    totalUnregistered = fold $ aggregateRewards (pr ^. protocolVersionL) unregRU
+    totalUnregistered = fold $ aggregateRewards (pr ^. ppProtocolVersionL) unregRU
     unregistered = Map.keysSet unregRU
-    (registered, eraIgnored) = filterRewards (pr ^. protocolVersionL) regRU
+    (registered, eraIgnored) = filterRewards (pr ^. ppProtocolVersionL) regRU
 
 -- | Aggregate active stake by merging two maps. The triple map from the
 --   UnifiedMap, and the IncrementalStake Only keep the active stake. Active can
@@ -212,7 +212,7 @@ applyRUpd'
       dState = dpsDState delegState
       (registered, eraIgnored, unregistered, totalUnregistered) =
         filterAllRewards (rs ru) es
-      registeredAggregated = aggregateRewards (pp ^. protocolVersionL) registered
+      registeredAggregated = aggregateRewards (pp ^. ppProtocolVersionL) registered
       as' =
         as
           { _treasury = addDeltaCoin (_treasury as) (deltaT ru) <> totalUnregistered,

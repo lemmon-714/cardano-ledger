@@ -182,7 +182,7 @@ poolDelegationTransition ::
 poolDelegationTransition = do
   TRC (PoolEnv slot pp, ps, c) <- judgmentContext
   let stpools = _pParams ps
-  let pv = pp ^. protocolVersionL
+  let pv = pp ^. ppProtocolVersionL
   case c of
     DCertPool (RegPool poolParam) -> do
       -- note that pattern match is used instead of cwitness, as in the spec
@@ -200,7 +200,7 @@ poolDelegationTransition = do
                 ?! PoolMedataHashTooBig (_poolId poolParam) s
 
       let poolCost = _poolCost poolParam
-          minPoolCost = pp ^. minPoolCostL
+          minPoolCost = pp ^. ppMinPoolCostL
       poolCost >= minPoolCost ?! StakePoolCostTooLowPOOL poolCost minPoolCost
 
       let hk = _poolId poolParam
@@ -225,7 +225,7 @@ poolDelegationTransition = do
       EpochNo cepoch <- liftSTS $ do
         ei <- asks epochInfoPure
         epochInfoEpoch ei slot
-      let EpochNo maxEpoch = pp ^. eMaxL
+      let EpochNo maxEpoch = pp ^. ppEMaxL
       cepoch < e && e <= cepoch + maxEpoch
         ?! StakePoolRetirementWrongEpochPOOL cepoch e (cepoch + maxEpoch)
       pure $ ps {_retiring = eval (_retiring ps ⨃ singleton hk (EpochNo e))}

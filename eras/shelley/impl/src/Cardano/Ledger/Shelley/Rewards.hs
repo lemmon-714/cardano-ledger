@@ -373,9 +373,9 @@ mkPoolRewardInfo
               }
        in Right $! rewardInfo
     where
-      pp_d = pp ^. dL
-      pp_a0 = pp ^. a0L
-      pp_nOpt = pp ^. nOptL
+      pp_d = pp ^. ppDL
+      pp_a0 = pp ^. ppA0L
+      pp_nOpt = pp ^. ppNOptL
       Coin pstakeTot = Map.findWithDefault mempty (_poolId pool) stakePerPool
       accOwnerStake c o = maybe c (c <>) $ do
         hk <- VMap.lookup (KeyHashObj o) delegs

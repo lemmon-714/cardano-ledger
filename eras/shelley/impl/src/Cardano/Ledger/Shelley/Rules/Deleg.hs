@@ -263,7 +263,7 @@ delegationTransition ::
   TransitionRule (ShelleyDELEG era)
 delegationTransition = do
   TRC (DelegEnv slot ptr acnt pp, ds, c) <- judgmentContext
-  let pv = pp ^. protocolVersionL
+  let pv = pp ^. ppProtocolVersionL
   case c of
     DCertDeleg (RegKey hk) -> do
       eval (hk ∉ dom (rewards ds)) ?! StakeKeyAlreadyRegisteredDELEG hk

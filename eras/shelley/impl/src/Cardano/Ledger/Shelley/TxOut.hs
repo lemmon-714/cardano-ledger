@@ -71,7 +71,7 @@ instance (CC.Crypto crypto, EraPParams (ShelleyEra crypto)) => Core.EraTxOut (Sh
   valueEitherTxOutL = valueEitherShelleyTxOutL
   {-# INLINE valueEitherTxOutL #-}
 
-  getMinCoinTxOut pp _ = pp ^. minUTxOValueL
+  getMinCoinTxOut pp _ = pp ^. ppMinUTxOValueL
 
 addrEitherShelleyTxOutL ::
   Lens' (ShelleyTxOut era) (Either (Addr (EraCrypto era)) (CompactAddr (EraCrypto era)))

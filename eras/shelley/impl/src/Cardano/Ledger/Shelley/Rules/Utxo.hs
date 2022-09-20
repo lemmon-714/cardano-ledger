@@ -574,7 +574,7 @@ validateMaxTxSizeUTxO ::
 validateMaxTxSizeUTxO pp tx =
   failureUnless (txSize <= maxTxSize) $ MaxTxSizeUTxO txSize maxTxSize
   where
-    maxTxSize = toInteger (pp ^. maxTxSizeL)
+    maxTxSize = toInteger (pp ^. ppMaxTxSizeL)
     txSize = tx ^. sizeTxF
 
 updateUTxOState ::

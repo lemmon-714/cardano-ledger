@@ -62,7 +62,8 @@ import GHC.Generics (Generic)
 import Lens.Micro (_1, _2, (^.))
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
-import Cardano.Ledger.Core (EraPParams(..), Era (..), PParams)
+import Cardano.Ledger.Core (Era (..))
+import Cardano.Ledger.PParams
 
 -- | Type of stake as map from hash key to coins associated.
 newtype Stake c = Stake
@@ -116,8 +117,8 @@ obligation ::
   Map (KeyHash 'StakePool (EraCrypto era)) (PoolParams (EraCrypto era)) ->
   Coin
 obligation pp rewards stakePools =
-  (length rewards <×> pp ^. keyDepositL)
-    <+> (length stakePools <×> pp ^. poolDepositL)
+  (length rewards <×> pp ^. ppKeyDepositL)
+    <+> (length stakePools <×> pp ^. ppPoolDepositL)
 
 -- | Calculate maximal pool reward
 maxPool' ::
@@ -147,8 +148,8 @@ maxPool ::
   Coin
 maxPool pc r sigma pR = maxPool' a0 nOpt r sigma pR
   where
-    a0 = pc ^. a0L
-    nOpt = pc ^. nOptL
+    a0 = pc ^. ppA0L
+    nOpt = pc ^. ppNOptL
 
 -- | Snapshot of the stake distribution.
 data SnapShot c = SnapShot

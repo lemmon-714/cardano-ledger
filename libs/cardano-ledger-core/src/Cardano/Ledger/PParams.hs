@@ -1,15 +1,18 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Cardano.Ledger.PParams
   ( EraPParams (..),
     PParams (..),
     PParamsUpdate (..),
-    applyPPUpdates,
 
     -- * PParams lens helpers
     ppMinFeeAL,
@@ -63,17 +66,66 @@ import Cardano.Ledger.HKD (HKD)
 import Cardano.Ledger.Slot (EpochNo (..))
 import Control.DeepSeq (NFData)
 import Control.Monad.Identity (Identity)
+import Data.Default.Class (Default)
 import Data.Kind (Type)
-import Data.Maybe.Strict (StrictMaybe, fromSMaybe)
+import Data.Maybe.Strict (StrictMaybe)
 import GHC.Natural (Natural)
-import Lens.Micro (Lens', lens, (&), (%~), (^.))
+import Lens.Micro (Lens', lens)
 import NoThunks.Class (NoThunks)
 
 -- | Protocol parameters
 newtype PParams era = PParams (PParamsHKD Identity era)
 
+deriving newtype instance
+  Eq (PParamsHKD Identity era) => Eq (PParams era)
+
+deriving newtype instance 
+  Default (PParamsHKD Identity era) => Default (PParams era)
+
+deriving newtype instance 
+  Show (PParamsHKD Identity era) => Show (PParams era)
+
+deriving newtype instance 
+  Ord (PParamsHKD Identity era) => Ord (PParams era)
+
+deriving newtype instance 
+  NFData (PParamsHKD Identity era) => NFData (PParams era)
+
+deriving newtype instance 
+  (Era era, FromCBOR (PParamsHKD Identity era)) => FromCBOR (PParams era)
+
+deriving newtype instance 
+  (Era era, ToCBOR (PParamsHKD Identity era)) => ToCBOR (PParams era)
+
+deriving newtype instance 
+  (Era era, NoThunks (PParamsHKD Identity era)) => NoThunks (PParams era)
+
 -- | The type of updates to Protocol parameters
 newtype PParamsUpdate era = PParamsUpdate (PParamsHKD StrictMaybe era)
+
+deriving newtype instance 
+  Eq (PParamsHKD StrictMaybe era) => Eq (PParamsUpdate era)
+
+deriving newtype instance 
+  Default (PParamsHKD StrictMaybe era) => Default (PParamsUpdate era)
+
+deriving newtype instance 
+  Show (PParamsHKD StrictMaybe era) => Show (PParamsUpdate era)
+
+deriving newtype instance 
+  Ord (PParamsHKD StrictMaybe era) => Ord (PParamsUpdate era)
+
+deriving newtype instance 
+  NFData (PParamsHKD StrictMaybe era) => NFData (PParamsUpdate era)
+
+deriving newtype instance 
+  (FromCBOR (PParamsHKD StrictMaybe era), Era era) => FromCBOR (PParamsUpdate era)
+
+deriving newtype instance 
+  (ToCBOR (PParamsHKD StrictMaybe era), Era era) => ToCBOR (PParamsUpdate era)
+
+deriving newtype instance 
+  (NoThunks (PParamsHKD StrictMaybe era), Era era) => NoThunks (PParamsUpdate era)
 
 class
   ( Era era,
@@ -94,6 +146,9 @@ class
   where
   -- | Protocol parameters where the fields are represented with a HKD
   type PParamsHKD (f :: Type -> Type) era = (r :: Type) | r -> era
+
+  -- | Applies a protocol parameters update
+  applyPPUpdates :: PParams era -> PParamsUpdate era -> PParams era
 
   emptyPParams :: PParams era
   emptyPParamsUpdate :: PParamsUpdate era
@@ -296,27 +351,6 @@ ppuMinUTxOValueL = ppuLens . hkdMinUTxOValueL @era @StrictMaybe
 -- | Minimum Stake Pool Cost
 ppuMinPoolCostL :: forall era. EraPParams era => Lens' (PParamsUpdate era) (StrictMaybe Coin)
 ppuMinPoolCostL = ppuLens . hkdMinPoolCostL @era @StrictMaybe
-
--- | Applies a protocol parameters update
-applyPPUpdates :: EraPParams era => PParams era -> PParamsUpdate era -> PParams era
-applyPPUpdates pp ppu = pp
-  & ppMinFeeAL %~ flip fromSMaybe (ppu ^. ppuMinFeeAL)
-  & ppMinFeeBL %~ flip fromSMaybe (ppu ^. ppuMinFeeBL)
-  & ppMaxBBSizeL %~ flip fromSMaybe (ppu ^. ppuMaxBBSizeL)
-  & ppMaxTxSizeL %~ flip fromSMaybe (ppu ^. ppuMaxTxSizeL)
-  & ppMaxBHSizeL %~ flip fromSMaybe (ppu ^. ppuMaxBHSizeL)
-  & ppKeyDepositL %~ flip fromSMaybe (ppu ^. ppuKeyDepositL)
-  & ppPoolDepositL %~ flip fromSMaybe (ppu ^. ppuPoolDepositL)
-  & ppEMaxL %~ flip fromSMaybe (ppu ^. ppuEMaxL)
-  & ppNOptL %~ flip fromSMaybe (ppu ^. ppuNOptL)
-  & ppA0L %~ flip fromSMaybe (ppu ^. ppuA0L)
-  & ppRhoL %~ flip fromSMaybe (ppu ^. ppuRhoL)
-  & ppTauL %~ flip fromSMaybe (ppu ^. ppuTauL)
-  & ppDL %~ flip fromSMaybe (ppu ^. ppuDL)
-  & ppExtraEntropyL %~ flip fromSMaybe (ppu ^. ppuExtraEntropyL)
-  & ppProtocolVersionL %~ flip fromSMaybe (ppu ^. ppuProtocolVersionL)
-  & ppMinUTxOValueL %~ flip fromSMaybe (ppu ^. ppuMinUTxOValueL)
-  & ppMinPoolCostL %~ flip fromSMaybe (ppu ^. ppuMinPoolCostL)
 
 type PParamsDelta era = PParamsUpdate era
 

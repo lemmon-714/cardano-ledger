@@ -16,14 +16,12 @@ module Cardano.Ledger.Shelley.PParams
   ( ShelleyPParams,
     ShelleyPParamsHKD (..),
     PPUPState (..),
-    emptyPParams,
     HKD,
     HKDFunctor (..),
     PPUpdateEnv (..),
     ProposedPPUpdates (..),
     emptyPPPUpdates,
     ShelleyPParamsUpdate,
-    emptyPParamsUpdate,
     Update (..),
     updatePParams,
     pvCanFollow,
@@ -89,7 +87,7 @@ import Data.Maybe (mapMaybe)
 import GHC.Generics (Generic)
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
-import Lens.Micro (lens)
+import Lens.Micro (lens, (&), (%~), (^.))
 
 -- ====================================================================
 
@@ -171,7 +169,7 @@ type ShelleyPParams era = ShelleyPParamsHKD Identity era
 
 type ShelleyPParamsUpdate era = ShelleyPParamsHKD StrictMaybe era
 
-instance (CC.Crypto c) => EraPParams (ShelleyEra c) where
+instance CC.Crypto c => Core.EraPParams (ShelleyEra c) where
   type PParamsHKD f (ShelleyEra c) = ShelleyPParamsHKD f (ShelleyEra c)
 
   emptyPParams = def
@@ -312,12 +310,7 @@ instance FromJSON (ShelleyPParams era) where
         <*> obj .:? "minPoolCost" .!= mempty
 
 instance Default (ShelleyPParams era) where
-  def = emptyPParams
-
--- | Returns a basic "empty" `PParams` structure with all zero values.
-emptyPParams :: ShelleyPParams era
-emptyPParams =
-  ShelleyPParams
+  def = ShelleyPParams
     { minfeeA = 0,
       minfeeB = 0,
       maxBBSize = 0,
@@ -404,11 +397,7 @@ instance (Era era) => ToCBOR (PParamsUpdate era) where
       encodeMapElement ix encoder x = SJust (encodeWord ix <> encoder x)
 
 instance Default (PParamsUpdate era) where
-  def = emptyPParamsUpdate
-
-emptyPParamsUpdate :: PParamsUpdate era
-emptyPParamsUpdate =
-  ShelleyPParams
+  def = ShelleyPParams
     { minfeeA = SNothing,
       minfeeB = SNothing,
       maxBBSize = SNothing,
@@ -455,7 +444,7 @@ instance (Era era) => FromCBOR (PParamsUpdate era) where
     unless
       (nub fields == fields)
       (fail $ "duplicate keys: " <> show fields)
-    pure $ foldr ($) emptyPParamsUpdate (snd <$> mapParts)
+    pure $ foldr ($) def (snd <$> mapParts)
 
 -- | Update operation for protocol parameters structure @PParams
 newtype ProposedPPUpdates era
@@ -485,27 +474,25 @@ instance
 emptyPPPUpdates :: ProposedPPUpdates era
 emptyPPPUpdates = ProposedPPUpdates Map.empty
 
-updatePParams :: Core.PParams era -> PParamsUpdate era -> Core.PParams era
-updatePParams (Core.PParams pp) (Core.PParamsUpdate ppup) =
-  Core.PParams $ ShelleyPParams
-    { minfeeA = fromSMaybe (minfeeA pp) (minfeeA ppup),
-      minfeeB = fromSMaybe (minfeeB pp) (minfeeB ppup),
-      maxBBSize = fromSMaybe (maxBBSize pp) (maxBBSize ppup),
-      maxTxSize = fromSMaybe (maxTxSize pp) (maxTxSize ppup),
-      maxBHSize = fromSMaybe (maxBHSize pp) (maxBHSize ppup),
-      keyDeposit = fromSMaybe (keyDeposit pp) (keyDeposit ppup),
-      poolDeposit = fromSMaybe (poolDeposit pp) (poolDeposit ppup),
-      eMax = fromSMaybe (eMax pp) (eMax ppup),
-      nOpt = fromSMaybe (nOpt pp) (nOpt ppup),
-      a0 = fromSMaybe (a0 pp) (a0 ppup),
-      rho = fromSMaybe (rho pp) (rho ppup),
-      tau = fromSMaybe (tau pp) (tau ppup),
-      d = fromSMaybe (d pp) (d ppup),
-      extraEntropy = fromSMaybe (extraEntropy pp) (extraEntropy ppup),
-      protocolVersion = fromSMaybe (protocolVersion pp) (protocolVersion ppup),
-      minUTxOValue = fromSMaybe (minUTxOValue pp) (minUTxOValue ppup),
-      minPoolCost = fromSMaybe (minPoolCost pp) (minPoolCost ppup)
-    }
+updatePParams :: Core.EraPParams era => Core.PParams era -> Core.PParamsUpdate era -> Core.PParams era
+updatePParams pp ppu = pp
+  & Core.ppMinFeeAL %~ flip fromSMaybe (ppu ^. Core.ppuMinFeeAL)
+  & Core.ppMinFeeBL %~ flip fromSMaybe (ppu ^. Core.ppuMinFeeBL)
+  & Core.ppMaxBBSizeL %~ flip fromSMaybe (ppu ^. Core.ppuMaxBBSizeL)
+  & Core.ppMaxTxSizeL %~ flip fromSMaybe (ppu ^. Core.ppuMaxTxSizeL)
+  & Core.ppMaxBHSizeL %~ flip fromSMaybe (ppu ^. Core.ppuMaxBHSizeL)
+  & Core.ppKeyDepositL %~ flip fromSMaybe (ppu ^. Core.ppuKeyDepositL)
+  & Core.ppPoolDepositL %~ flip fromSMaybe (ppu ^. Core.ppuPoolDepositL)
+  & Core.ppEMaxL %~ flip fromSMaybe (ppu ^. Core.ppuEMaxL)
+  & Core.ppNOptL %~ flip fromSMaybe (ppu ^. Core.ppuNOptL)
+  & Core.ppA0L %~ flip fromSMaybe (ppu ^. Core.ppuA0L)
+  & Core.ppRhoL %~ flip fromSMaybe (ppu ^. Core.ppuRhoL)
+  & Core.ppTauL %~ flip fromSMaybe (ppu ^. Core.ppuTauL)
+  & Core.ppDL %~ flip fromSMaybe (ppu ^. Core.ppuDL)
+  & Core.ppExtraEntropyL %~ flip fromSMaybe (ppu ^. Core.ppuExtraEntropyL)
+  & Core.ppProtocolVersionL %~ flip fromSMaybe (ppu ^. Core.ppuProtocolVersionL)
+  & Core.ppMinUTxOValueL %~ flip fromSMaybe (ppu ^. Core.ppuMinUTxOValueL)
+  & Core.ppMinPoolCostL %~ flip fromSMaybe (ppu ^. Core.ppuMinPoolCostL)
 
 data PPUPState era = PPUPState
   { proposals :: !(ProposedPPUpdates era),

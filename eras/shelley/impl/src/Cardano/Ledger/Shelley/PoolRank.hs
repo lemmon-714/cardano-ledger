@@ -76,7 +76,8 @@ import Lens.Micro (_1, (^.))
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
 import Quiet
-import Cardano.Ledger.Core (EraPParams(..), Era (..))
+import Cardano.Ledger.Core (Era (..))
+import Cardano.Ledger.PParams
 
 newtype LogWeight = LogWeight {unLogWeight :: Float}
   deriving (Eq, Generic, Ord, Num, NFData, NoThunks, ToCBOR, FromCBOR)
@@ -315,11 +316,11 @@ getTopRankedPoolsInternal ::
 getTopRankedPoolsInternal rPot totalStake pp pdata =
   Set.fromList $
     fst
-      <$> take (fromIntegral $ pp ^. nOptL) (sortBy (flip compare `on` snd) rankings)
+      <$> take (fromIntegral $ pp ^. ppNOptL) (sortBy (flip compare `on` snd) rankings)
   where
     rankings =
       [ ( hk,
-          desirability (pp ^. a0L, pp ^. nOptL) rPot pool ap totalStake
+          desirability (pp ^. ppA0L, pp ^. ppNOptL) rPot pool ap totalStake
         )
         | (hk, (pool, ap)) <- pdata
       ]
@@ -341,7 +342,7 @@ nonMyopicStake ::
   Set (KeyHash 'StakePool c) ->
   StakeShare
 nonMyopicStake pp (StakeShare s) (StakeShare sigma) (StakeShare t) kh topPools =
-  let z0 = 1 % max 1 (fromIntegral (pp ^. nOptL))
+  let z0 = 1 % max 1 (fromIntegral (pp ^. ppNOptL))
    in if kh `Set.member` topPools
         then StakeShare (max (sigma + t) z0)
         else StakeShare (s + t)
