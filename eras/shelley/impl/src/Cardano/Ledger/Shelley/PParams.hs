@@ -54,7 +54,7 @@ import Cardano.Ledger.BaseTypes
   )
 import qualified Cardano.Ledger.BaseTypes as BT
 import Cardano.Ledger.Coin (Coin (..))
-import Cardano.Ledger.Core (Era (EraCrypto), EraPParams (applyPPUpdates))
+import Cardano.Ledger.Core (Era (EraCrypto))
 import qualified Cardano.Ledger.Core as Core
 import qualified Cardano.Ledger.Crypto as CC
 import Cardano.Ledger.HKD (HKD, HKDFunctor (..))
@@ -172,31 +172,30 @@ type ShelleyPParams era = ShelleyPParamsHKD Identity era
 type ShelleyPParamsUpdate era = ShelleyPParamsHKD StrictMaybe era
 
 instance (CC.Crypto c) => EraPParams (ShelleyEra c) where
-  type PParams (ShelleyEra c) = ShelleyPParams (ShelleyEra c)
-  type PParamsUpdate (ShelleyEra c) = ShelleyPParamsUpdate (ShelleyEra c)
+  type PParamsHKD f (ShelleyEra c) = ShelleyPParamsHKD f (ShelleyEra c)
 
   emptyPParams = def
   emptyPParamsUpdate = def
 
   applyPPUpdates = updatePParams
 
-  ppMinFeeAL = lens minfeeA $ \pp x -> pp{minfeeA = x}
-  ppMinFeeBL = lens minfeeB $ \pp x -> pp{minfeeB = x}
-  maxBBSizeL = lens maxBBSize $ \pp x -> pp{maxBBSize = x}
-  maxTxSizeL = lens maxTxSize $ \pp x -> pp{maxTxSize = x}
-  maxBHSizeL = lens maxBHSize $ \pp x -> pp{maxBHSize = x}
-  keyDepositL = lens keyDeposit $ \pp x -> pp{keyDeposit = x}
-  poolDepositL = lens poolDeposit $ \pp x -> pp{poolDeposit = x}
-  eMaxL = lens eMax $ \pp x -> pp{eMax = x}
-  nOptL = lens nOpt $ \pp x -> pp{nOpt = x}
-  a0L = lens a0 $ \pp x -> pp{a0 = x}
-  rhoL = lens rho $ \pp x -> pp{rho = x}
-  tauL = lens tau $ \pp x -> pp{tau = x}
-  dL = lens d $ \pp x -> pp{d = x}
-  extraEntropyL = lens extraEntropy $ \pp x -> pp{extraEntropy = x}
-  protocolVersionL = lens protocolVersion $ \pp x -> pp{protocolVersion = x}
-  minUTxOValueL = lens minUTxOValue $ \pp x -> pp{minUTxOValue = x}
-  minPoolCostL = lens minPoolCost $ \pp x -> pp{minPoolCost = x}
+  hkdMinFeeAL = lens minfeeA $ \pp x -> pp{minfeeA = x}
+  hkdMinFeeBL = lens minfeeB $ \pp x -> pp{minfeeB = x}
+  hkdMaxBBSizeL = lens maxBBSize $ \pp x -> pp{maxBBSize = x}
+  hkdMaxTxSizeL = lens maxTxSize $ \pp x -> pp{maxTxSize = x}
+  hkdMaxBHSizeL = lens maxBHSize $ \pp x -> pp{maxBHSize = x}
+  hkdKeyDepositL = lens keyDeposit $ \pp x -> pp{keyDeposit = x}
+  hkdPoolDepositL = lens poolDeposit $ \pp x -> pp{poolDeposit = x}
+  hkdEMaxL = lens eMax $ \pp x -> pp{eMax = x}
+  hkdNOptL = lens nOpt $ \pp x -> pp{nOpt = x}
+  hkdA0L = lens a0 $ \pp x -> pp{a0 = x}
+  hkdRhoL = lens rho $ \pp x -> pp{rho = x}
+  hkdTauL = lens tau $ \pp x -> pp{tau = x}
+  hkdDL = lens d $ \pp x -> pp{d = x}
+  hkdExtraEntropyL = lens extraEntropy $ \pp x -> pp{extraEntropy = x}
+  hkdProtocolVersionL = lens protocolVersion $ \pp x -> pp{protocolVersion = x}
+  hkdMinUTxOValueL = lens minUTxOValue $ \pp x -> pp{minUTxOValue = x}
+  hkdMinPoolCostL = lens minPoolCost $ \pp x -> pp{minPoolCost = x}
 
 deriving instance Eq (PParams' Identity era)
 
@@ -486,9 +485,9 @@ instance
 emptyPPPUpdates :: ProposedPPUpdates era
 emptyPPPUpdates = ProposedPPUpdates Map.empty
 
-updatePParams :: PParams era -> PParamsUpdate era -> PParams era
-updatePParams pp ppup =
-  ShelleyPParams
+updatePParams :: Core.PParams era -> PParamsUpdate era -> Core.PParams era
+updatePParams (Core.PParams pp) (Core.PParamsUpdate ppup) =
+  Core.PParams $ ShelleyPParams
     { minfeeA = fromSMaybe (minfeeA pp) (minfeeA ppup),
       minfeeB = fromSMaybe (minfeeB pp) (minfeeB ppup),
       maxBBSize = fromSMaybe (maxBBSize pp) (maxBBSize ppup),

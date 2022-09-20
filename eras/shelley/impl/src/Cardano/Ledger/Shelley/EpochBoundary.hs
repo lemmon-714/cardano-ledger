@@ -62,7 +62,7 @@ import GHC.Generics (Generic)
 import Lens.Micro (_1, _2, (^.))
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
-import Cardano.Ledger.Core (EraPParams(..), Era (..))
+import Cardano.Ledger.Core (EraPParams(..), Era (..), PParams)
 
 -- | Type of stake as map from hash key to coins associated.
 newtype Stake c = Stake

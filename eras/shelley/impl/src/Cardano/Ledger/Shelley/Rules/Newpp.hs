@@ -35,7 +35,7 @@ import Cardano.Ledger.Shelley.LedgerState
   )
 import Cardano.Ledger.Shelley.PParams
   ( ProposedPPUpdates (..),
-    emptyPPPUpdates,
+    emptyPPPUpdates, ShelleyPParamsHKD (..)
   )
 import Cardano.Ledger.Shelley.TxBody (MIRPot (..))
 import Control.State.Transition
@@ -113,8 +113,8 @@ newPpTransition = do
         -- Note that instantaneous rewards from the treasury are irrelevant
         -- here, since changes in the protocol parameters do not change how much
         -- is needed from the treasury
-        && (ppNew ^. maxTxSizeL + ppNew ^. maxBHSizeL)
-          < ppNew ^. maxBBSizeL
+        && (ppNew' ^. maxTxSizeL + ppNew' ^. maxBHSizeL)
+          < ppNew' ^. maxBBSizeL
         then pure $ NewppState ppNew' (updatePpup ppupSt ppNew')
         else pure $ NewppState pp (updatePpup ppupSt pp)
     Nothing -> pure $ NewppState pp (updatePpup ppupSt pp)
@@ -123,6 +123,7 @@ newPpTransition = do
 -- and making the future proposals become the new proposals,
 -- provided the new proposals can follow (otherwise reset them).
 updatePpup ::
+  forall era.
   EraPParams era =>
   PPUPState era ->
   PParams era ->
@@ -131,7 +132,7 @@ updatePpup ppupSt pp = PPUPState ps emptyPPPUpdates
   where
     ProposedPPUpdates newProposals = futureProposals ppupSt
     goodPV ppu =
-      pvCanFollow (pp ^. protocolVersionL) . SJust $ ppu ^. protocolVersionL
+      pvCanFollow (pp ^. protocolVersionL) $ protocolVersion @StrictMaybe @era ppu
     ps =
       if all goodPV newProposals
         then ProposedPPUpdates newProposals

@@ -35,7 +35,6 @@ module Cardano.Ledger.Core
     EraScript (..),
     Value,
     EraPParams (..),
-    PParamsDelta,
 
     -- * Era STS
     EraRule,
@@ -70,6 +69,8 @@ module Cardano.Ledger.Core
 
     -- * Re-exports
     module Cardano.Ledger.Hashes,
+    module Cardano.Ledger.PParams,
+    module Cardano.Ledger.Era.Class,
 
     -- * Deprecations
     hashAuxiliaryData,
@@ -81,7 +82,7 @@ import Cardano.Binary (Annotator, FromCBOR (..), ToCBOR (..))
 import qualified Cardano.Crypto.Hash as Hash
 import Cardano.Ledger.Address (Addr (..), BootstrapAddress)
 import Cardano.Ledger.AuxiliaryData (AuxiliaryDataHash)
-import Cardano.Ledger.BaseTypes (ProtVer, NonNegativeInterval, UnitInterval, Nonce (..))
+import Cardano.Ledger.BaseTypes (ProtVer)
 import Cardano.Ledger.Coin (Coin)
 import Cardano.Ledger.CompactAddress (CompactAddr, compactAddr, decompactAddr, isBootstrapCompactAddr)
 import Cardano.Ledger.Compactible (Compactible (..))
@@ -93,6 +94,7 @@ import Cardano.Ledger.Keys.Bootstrap (BootstrapWitness)
 import Cardano.Ledger.Keys.WitVKey (WitVKey)
 import Cardano.Ledger.Language (Language)
 import Cardano.Ledger.SafeHash (HashAnnotated (..), SafeToHash (..))
+import Cardano.Ledger.PParams
 import Cardano.Ledger.Serialization (Sized (sizedValue), ToCBORGroup (..), mkSized)
 import Cardano.Ledger.TxIn (TxIn (..))
 import Cardano.Ledger.Val (DecodeNonNegative, Val (..))
@@ -108,31 +110,13 @@ import Data.Maybe.Strict (StrictMaybe)
 import Data.Sequence.Strict (StrictSeq)
 import Data.Set (Set)
 import Data.Sharing (FromSharedCBOR (Share), Interns)
-import Data.Typeable (Typeable)
 import Data.Void (Void, absurd)
 import Data.Word (Word64)
 import GHC.Stack (HasCallStack)
 import GHC.TypeLits
 import Lens.Micro
 import NoThunks.Class (NoThunks)
-import Numeric.Natural (Natural)
-import Cardano.Ledger.Slot (EpochNo(..))
-import qualified Cardano.Ledger.BaseTypes as BT
-
---------------------------------------------------------------------------------
--- Era
---------------------------------------------------------------------------------
-
-class (CC.Crypto (EraCrypto era), Typeable era, ProtVerLow era <= ProtVerHigh era) => Era era where
-  type EraCrypto era :: Type
-
-  -- | Lowest major protocol version for this era
-  type ProtVerLow era :: Nat
-
-  -- | Highest major protocol version for this era. By default se to `ProtVerLow`
-  type ProtVerHigh era :: Nat
-
-  type ProtVerHigh era = ProtVerLow era
+import Cardano.Ledger.Era.Class (Era(..))
 
 -- | A transaction.
 class
@@ -300,8 +284,8 @@ bootAddrTxOutF = to $ \txOut ->
     Left (AddrBootstrap bootstrapAddr) -> Just bootstrapAddr
     Right cAddr
       | isBootstrapCompactAddr cAddr -> do
-          AddrBootstrap bootstrapAddr <- Just (decompactAddr cAddr)
-          Just bootstrapAddr
+        AddrBootstrap bootstrapAddr <- Just (decompactAddr cAddr)
+        Just bootstrapAddr
     _ -> Nothing
 {-# INLINE bootAddrTxOutF #-}
 
@@ -379,73 +363,6 @@ hashAuxiliaryData = hashTxAuxData
 validateAuxiliaryData :: EraTxAuxData era => ProtVer -> TxAuxData era -> Bool
 validateAuxiliaryData = validateTxAuxData
 {-# DEPRECATED validateAuxiliaryData "Use `validateTxAuxData` instead" #-}
-
-class
-  ( Era era,
-    Eq (PParams era),
-    Show (PParams era),
-    NFData (PParams era),
-    ToCBOR (PParams era),
-    FromCBOR (PParams era),
-    NoThunks (PParams era),
-    Ord (PParamsUpdate era),
-    Show (PParamsUpdate era),
-    NFData (PParamsUpdate era),
-    ToCBOR (PParamsUpdate era),
-    FromCBOR (PParamsUpdate era),
-    NoThunks (PParamsUpdate era)
-  ) =>
-  EraPParams era
-  where
-  -- | Protocol parameters
-  type PParams era = (r :: Type) | r -> era
-
-  -- | The type of updates to Protocol parameters
-  type PParamsUpdate era = (r :: Type) | r -> era
-
-  emptyPParams :: PParams era
-  emptyPParamsUpdate :: PParamsUpdate era
-
-  applyPPUpdates :: PParams era -> PParamsUpdate era -> PParams era
-
-  -- | The linear factor for the minimum fee calculation
-  ppMinFeeAL :: Lens' (PParams era) Natural
-  -- | The constant factor for the minimum fee calculation
-  ppMinFeeBL :: Lens' (PParams era) Natural
-  -- | Maximal block body size
-  maxBBSizeL :: Lens' (PParams era) Natural
-  -- | Maximal transaction size
-  maxTxSizeL :: Lens' (PParams era) Natural
-  -- | Maximal block header size
-  maxBHSizeL :: Lens' (PParams era) Natural
-  -- | The amount of a key registration deposit
-  keyDepositL :: Lens' (PParams era) Coin
-  -- | The amount of a pool registration deposit
-  poolDepositL :: Lens' (PParams era) Coin
-  -- | epoch bound on pool retirement
-  eMaxL :: Lens' (PParams era) EpochNo
-  -- | Desired number of pools
-  nOptL :: Lens' (PParams era) Natural
-  -- | Pool influence
-  a0L :: Lens' (PParams era) NonNegativeInterval
-  -- | Monetary expansion
-  rhoL :: Lens' (PParams era) UnitInterval
-  -- | Treasury expansion
-  tauL :: Lens' (PParams era) UnitInterval
-  -- | Decentralization parameter
-  dL :: Lens' (PParams era) UnitInterval
-  -- | Extra entropy
-  extraEntropyL :: Lens' (PParams era) Nonce
-  -- | Protocol version
-  protocolVersionL :: Lens' (PParams era) BT.ProtVer
-  -- | Minimum UTxO value
-  minUTxOValueL :: Lens' (PParams era) Coin
-  -- | Minimum Stake Pool Cost
-  minPoolCostL :: Lens' (PParams era) Coin
-
-type PParamsDelta era = PParamsUpdate era
-
-{-# DEPRECATED PParamsDelta "Use `PParamsUpdate` instead" #-}
 
 -- | A collection of witnesses in a Tx
 class
