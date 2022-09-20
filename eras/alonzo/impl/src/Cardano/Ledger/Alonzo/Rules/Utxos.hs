@@ -98,7 +98,6 @@ import Data.MapExtras (extractKeys)
 import Data.Text (Text)
 import Debug.Trace (traceEvent)
 import GHC.Generics (Generic)
-import GHC.Records (HasField (..))
 import Lens.Micro
 import NoThunks.Class (NoThunks)
 

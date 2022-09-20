@@ -52,7 +52,6 @@ import Control.State.Transition
     TRC (..),
   )
 import Data.Sequence (Seq)
-import GHC.Records (HasField)
 
 -- ==================================================
 

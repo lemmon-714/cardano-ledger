@@ -138,7 +138,6 @@ import qualified Data.Set as Set
 import qualified Data.UMap as UM
 import qualified Data.VMap as VMap
 import Data.Word (Word64)
-import GHC.Records (HasField, getField)
 import GHC.Stack
 import Numeric.Natural (Natural)
 import Test.Cardano.Ledger.Shelley.ConcreteCryptoTypes (C)

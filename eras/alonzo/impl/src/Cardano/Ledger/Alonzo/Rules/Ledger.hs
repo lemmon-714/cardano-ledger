@@ -63,7 +63,6 @@ import Control.State.Transition
 import Data.Kind (Type)
 import Data.Sequence (Seq)
 import qualified Data.Sequence.Strict as StrictSeq
-import GHC.Records (HasField)
 import Lens.Micro
 
 -- =======================================

@@ -23,7 +23,6 @@ where
 
 import Cardano.Ledger.BaseTypes
   ( BlocksMade (BlocksMade),
-    ProtVer,
     ShelleyBase,
     StrictMaybe (SJust, SNothing),
   )
@@ -51,7 +50,6 @@ import Data.Ratio ((%))
 import Data.Set (Set)
 import Data.VMap as VMap
 import GHC.Generics (Generic)
-import GHC.Records (HasField)
 import Lens.Micro ((^.))
 import NoThunks.Class (NoThunks (..))
 
@@ -103,7 +101,6 @@ instance
     State (EraRule "EPOCH" era) ~ EpochState era,
     Signal (EraRule "EPOCH" era) ~ EpochNo,
     Default (EpochState era),
-    HasField "_protocolVersion" (PParams era) ProtVer,
     Default (State (EraRule "PPUP" era)),
     Default (PParams era),
     Default (StashedAVVMAddresses era),
@@ -147,7 +144,6 @@ newEpochTransition ::
     Environment (EraRule "EPOCH" era) ~ (),
     State (EraRule "EPOCH" era) ~ EpochState era,
     Signal (EraRule "EPOCH" era) ~ EpochNo,
-    HasField "_protocolVersion" (PParams era) ProtVer,
     Default (State (EraRule "PPUP" era)),
     Default (PParams era),
     Default (StashedAVVMAddresses era),

@@ -148,7 +148,6 @@ import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import Data.Word (Word64)
 import GHC.Generics (Generic)
-import GHC.Records (HasField (..))
 import Lens.Micro hiding (set)
 import NoThunks.Class (NoThunks)
 import Numeric.Natural (Natural)

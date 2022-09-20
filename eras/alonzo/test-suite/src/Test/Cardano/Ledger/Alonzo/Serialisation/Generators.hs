@@ -82,7 +82,6 @@ import Data.Text (Text, pack)
 import Data.Twiddle
 import Data.Typeable (Typeable)
 import Data.Void (Void)
-import GHC.Records (HasField)
 import Numeric.Natural (Natural)
 import qualified PlutusLedgerApi.V1 as PV1
 import Test.Cardano.Ledger.Alonzo.Scripts (alwaysFails, alwaysSucceeds)

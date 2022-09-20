@@ -103,7 +103,6 @@ import Data.Ratio ((%))
 import Data.Sequence.Strict (StrictSeq ((:|>)))
 import qualified Data.Sequence.Strict as Seq (fromList)
 import Data.Set as Set
-import GHC.Records (HasField (..))
 import Lens.Micro
 import Numeric.Natural (Natural)
 import qualified PlutusTx as P (Data (..))

@@ -41,7 +41,6 @@ import Control.Monad (unless, when, zipWithM)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import Data.Text (Text)
-import GHC.Records (HasField (..))
 import Lens.Micro
 import qualified PlutusLedgerApi.V1 as PV1
 import PlutusLedgerApi.V1.Contexts ()

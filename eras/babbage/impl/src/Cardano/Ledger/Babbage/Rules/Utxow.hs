@@ -82,7 +82,6 @@ import Data.Maybe.Strict (StrictMaybe (..))
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Typeable
-import GHC.Records (HasField (..))
 import Lens.Micro
 import Lens.Micro.Extras (view)
 import NoThunks.Class (InspectHeapNamed (..), NoThunks (..))

@@ -26,7 +26,6 @@ import Cardano.Ledger.Val (inject)
 import Data.Foldable (fold)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import GHC.Records (HasField)
 import Lens.Micro
 
 instance Crypto c => EraUTxO (ShelleyMAEra 'Mary c) where

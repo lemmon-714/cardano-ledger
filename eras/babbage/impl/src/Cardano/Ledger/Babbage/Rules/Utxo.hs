@@ -102,7 +102,6 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe.Strict (StrictMaybe (..))
 import Data.Typeable (Typeable)
 import GHC.Natural (Natural)
-import GHC.Records (HasField (getField))
 import Lens.Micro
 import NoThunks.Class (InspectHeapNamed (..), NoThunks (..))
 import Validation (Validation, failureIf, failureUnless)

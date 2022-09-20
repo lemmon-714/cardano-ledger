@@ -57,7 +57,6 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import Debug.Trace (traceEvent)
 import GHC.Generics
-import GHC.Records (HasField (..))
 import Lens.Micro
 import NoThunks.Class (NoThunks)
 

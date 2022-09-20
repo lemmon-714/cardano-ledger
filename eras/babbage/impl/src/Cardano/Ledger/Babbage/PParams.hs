@@ -85,7 +85,6 @@ import Data.Coders
 import Data.Default (Default (..))
 import Data.Functor.Identity (Identity (..))
 import GHC.Generics (Generic)
-import GHC.Records (HasField (..))
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
 

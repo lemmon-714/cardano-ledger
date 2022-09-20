@@ -72,7 +72,6 @@ import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map.Strict as Map
 import Data.MapExtras (extractKeys)
 import Debug.Trace (traceEvent)
-import GHC.Records (HasField (..))
 import Lens.Micro
 
 -- =====================================================
