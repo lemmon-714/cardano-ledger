@@ -45,7 +45,7 @@ import Cardano.Ledger.Serialization
     utcTimeFromCBOR,
     utcTimeToCBOR,
   )
-import Cardano.Ledger.Shelley.PParams
+import Cardano.Ledger.Shelley.PParams ()
 import Cardano.Ledger.Shelley.StabilityWindow
 import Cardano.Ledger.Shelley.TxBody (PoolParams (..))
 import Cardano.Ledger.Shelley.UTxO (UTxO (UTxO))
@@ -69,6 +69,7 @@ import Data.Word (Word32, Word64)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import NoThunks.Class (NoThunks (..))
+import qualified Cardano.Ledger.Core as Core
 
 -- | Genesis Shelley staking configuration.
 --
@@ -134,24 +135,28 @@ data ShelleyGenesis era = ShelleyGenesis
     sgSlotLength :: !NominalDiffTime,
     sgUpdateQuorum :: !Word64,
     sgMaxLovelaceSupply :: !Word64,
-    sgProtocolParams :: !(PParams era),
+    sgProtocolParams :: !(Core.PParams era),
     sgGenDelegs :: !(Map (KeyHash 'Genesis (EraCrypto era)) (GenDelegPair (EraCrypto era))),
     sgInitialFunds :: LM.ListMap (Addr (EraCrypto era)) Coin,
     sgStaking :: ShelleyGenesisStaking (EraCrypto era)
   }
-  deriving stock (Eq, Show, Generic)
+  deriving stock (Generic)
 
-deriving instance Era era => NoThunks (ShelleyGenesis era)
+deriving instance EraPParams era => Show (ShelleyGenesis era)
+
+deriving instance EraPParams era => Eq (ShelleyGenesis era)
+
+deriving instance EraPParams era => NoThunks (ShelleyGenesis era)
 
 sgActiveSlotCoeff :: ShelleyGenesis era -> ActiveSlotCoeff
 sgActiveSlotCoeff = mkActiveSlotCoeff . sgActiveSlotsCoeff
 
-instance Era era => ToJSON (ShelleyGenesis era) where
+instance (Era era, EraPParams era) => ToJSON (ShelleyGenesis era) where
   toJSON = Aeson.object . toShelleyGenesisPairs
   toEncoding = Aeson.pairs . mconcat . toShelleyGenesisPairs
 
 toShelleyGenesisPairs ::
-  (Aeson.KeyValue a, CC.Crypto (EraCrypto era)) =>
+  (Aeson.KeyValue a, EraPParams era) =>
   ShelleyGenesis era ->
   [a]
 toShelleyGenesisPairs
@@ -191,7 +196,7 @@ toShelleyGenesisPairs
           "staking" .= strictSgStaking
         ]
 
-instance Era era => FromJSON (ShelleyGenesis era) where
+instance (EraPParams era) => FromJSON (ShelleyGenesis era) where
   parseJSON =
     Aeson.withObject "ShelleyGenesis" $ \obj ->
       ShelleyGenesis
@@ -236,7 +241,7 @@ instance CC.Crypto c => FromJSON (ShelleyGenesisStaking c) where
         <$> (forceElemsToWHNF <$> obj .: "pools")
         <*> (forceElemsToWHNF <$> obj .: "stake")
 
-instance Era era => ToCBOR (ShelleyGenesis era) where
+instance EraPParams era => ToCBOR (ShelleyGenesis era) where
   toCBOR
     ShelleyGenesis
       { sgSystemStart,
@@ -272,7 +277,7 @@ instance Era era => ToCBOR (ShelleyGenesis era) where
         <> toCBOR sgInitialFunds
         <> toCBOR sgStaking
 
-instance Era era => FromCBOR (ShelleyGenesis era) where
+instance EraPParams era => FromCBOR (ShelleyGenesis era) where
   fromCBOR = do
     decodeRecordNamed "ShelleyGenesis" (const 15) $ do
       sgSystemStart <- utcTimeFromCBOR

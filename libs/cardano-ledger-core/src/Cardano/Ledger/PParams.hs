@@ -1,8 +1,10 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -69,27 +71,93 @@ import Data.Maybe.Strict (StrictMaybe)
 import GHC.Natural (Natural)
 import Lens.Micro (Lens', lens)
 import NoThunks.Class (NoThunks)
+import Data.Default.Class (Default)
+import Data.Data (Typeable)
+import Data.Aeson (ToJSON, FromJSON)
 
 -- | Protocol parameters
 newtype PParams era = PParams (PParamsHKD Identity era)
 
+deriving newtype instance 
+  Eq (PParamsHKD Identity era) => Eq (PParams era)
+
+deriving newtype instance 
+  Ord (PParamsHKD Identity era) => Ord (PParams era)
+
+deriving newtype instance 
+  NFData (PParamsHKD Identity era) => NFData (PParams era)
+
+deriving newtype instance
+  NoThunks (PParamsHKD Identity era) => NoThunks (PParams era)
+
+deriving newtype instance 
+  Show (PParamsHKD Identity era) => Show (PParams era)
+
+deriving newtype instance 
+  Default (PParamsHKD Identity era) => Default (PParams era)
+
+deriving newtype instance 
+  ToJSON (PParamsHKD Identity era) => ToJSON (PParams era)
+
+deriving newtype instance 
+  FromJSON (PParamsHKD Identity era) => FromJSON (PParams era)
+
+deriving newtype instance 
+  (Typeable era, ToCBOR (PParamsHKD Identity era)) => ToCBOR (PParams era)
+
+deriving newtype instance 
+  (Typeable era, FromCBOR (PParamsHKD Identity era)) => FromCBOR (PParams era)
+
 -- | The type of updates to Protocol parameters
 newtype PParamsUpdate era = PParamsUpdate (PParamsHKD StrictMaybe era)
 
+deriving newtype instance 
+  Eq (PParamsHKD StrictMaybe era) => Eq (PParamsUpdate era)
+
+deriving newtype instance 
+  Ord (PParamsHKD StrictMaybe era) => Ord (PParamsUpdate era)
+
+deriving newtype instance 
+  NFData (PParamsHKD StrictMaybe era) => NFData (PParamsUpdate era)
+
+deriving newtype instance
+  NoThunks (PParamsHKD StrictMaybe era) => NoThunks (PParamsUpdate era)
+
+deriving newtype instance 
+  Show (PParamsHKD StrictMaybe era) => Show (PParamsUpdate era)
+
+deriving newtype instance 
+  Default (PParamsHKD StrictMaybe era) => Default (PParamsUpdate era)
+
+deriving newtype instance 
+  (Typeable era, ToCBOR (PParamsHKD StrictMaybe era)) => ToCBOR (PParamsUpdate era)
+
+deriving newtype instance 
+  (Typeable era, FromCBOR (PParamsHKD StrictMaybe era)) => FromCBOR (PParamsUpdate era)
+
+deriving newtype instance 
+  ToJSON (PParamsHKD StrictMaybe era) => ToJSON (PParamsUpdate era)
+
+deriving newtype instance 
+  FromJSON (PParamsHKD StrictMaybe era) => FromJSON (PParamsUpdate era)
+
 class
   ( Era era,
-    Eq (PParams era),
-    Show (PParams era),
-    NFData (PParams era),
-    ToCBOR (PParams era),
-    FromCBOR (PParams era),
-    NoThunks (PParams era),
-    Ord (PParamsUpdate era),
-    Show (PParamsUpdate era),
-    NFData (PParamsUpdate era),
-    ToCBOR (PParamsUpdate era),
-    FromCBOR (PParamsUpdate era),
-    NoThunks (PParamsUpdate era)
+    Eq (PParamsHKD Identity era),
+    Show (PParamsHKD Identity era),
+    NFData (PParamsHKD Identity era),
+    ToCBOR (PParamsHKD Identity era),
+    FromCBOR (PParamsHKD Identity era),
+    ToJSON (PParamsHKD Identity era),
+    FromJSON (PParamsHKD Identity era),
+    NoThunks (PParamsHKD Identity era),
+    Eq (PParamsHKD StrictMaybe era),
+    Ord (PParamsHKD StrictMaybe era),
+    Show (PParamsHKD StrictMaybe era),
+    NFData (PParamsHKD StrictMaybe era),
+    ToCBOR (PParamsHKD StrictMaybe era),
+    FromCBOR (PParamsHKD StrictMaybe era),
+    NoThunks (PParamsHKD StrictMaybe era)
   ) =>
   EraPParams era
   where

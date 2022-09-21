@@ -59,6 +59,7 @@ import qualified Cardano.Ledger.Core as Core
 import qualified Cardano.Ledger.Crypto as CC
 import Cardano.Ledger.HKD (HKD, HKDFunctor (..))
 import Cardano.Ledger.Keys (GenDelegs, KeyHash, KeyRole (..))
+import Cardano.Ledger.PParams hiding (PParams, PParamsUpdate)
 import Cardano.Ledger.Serialization
   ( FromCBORGroup (..),
     ToCBORGroup (..),
@@ -201,41 +202,15 @@ instance CC.Crypto c => Core.EraPParams (ShelleyEra c) where
 
 deriving instance Eq (ShelleyPParamsHKD Identity era)
 
-deriving instance Eq (Core.PParams (ShelleyEra c))
-
-deriving instance Eq (Core.PParamsUpdate (ShelleyEra c))
-
-deriving instance Show (PParams' Identity era)
-
-deriving instance Show (Core.PParams (ShelleyEra era))
-
-deriving instance Show (Core.PParamsUpdate (ShelleyEra era))
+deriving instance Show (ShelleyPParamsHKD Identity era)
 
 deriving instance Ord (ShelleyPParamsHKD Identity era)
 
-deriving instance Ord (Core.PParams (ShelleyEra c))
-
-deriving instance Ord (Core.PParamsUpdate (ShelleyEra c))
-
-deriving newtype instance Generic (Core.PParams (ShelleyEra c))
-
-deriving newtype instance Generic (Core.PParamsUpdate (ShelleyEra c))
-
-deriving instance NFData (Core.PParamsUpdate (ShelleyEra c))
-
-deriving instance NFData (Core.PParams (ShelleyEra c))
-
-deriving instance Default (Core.PParamsUpdate (ShelleyEra c))
-
 instance NoThunks (ShelleyPParamsHKD Identity era)
 
-instance NoThunks (Core.PParams (ShelleyEra c))
-
-instance NoThunks (Core.PParamsUpdate (ShelleyEra c))
-
-instance CC.Crypto c => ToCBOR (Core.PParams (ShelleyEra c)) where
+instance CC.Crypto c => ToCBOR (ShelleyPParamsHKD Identity (ShelleyEra c)) where
   toCBOR
-    (Core.PParams ShelleyPParams {..}) =
+    ShelleyPParams {..} =
       encodeListLen 18
         <> toCBOR minfeeA
         <> toCBOR minfeeB
@@ -255,9 +230,9 @@ instance CC.Crypto c => ToCBOR (Core.PParams (ShelleyEra c)) where
         <> toCBOR minUTxOValue
         <> toCBOR minPoolCost
 
-instance CC.Crypto c => FromCBOR (Core.PParams (ShelleyEra c)) where
+instance CC.Crypto c => FromCBOR (ShelleyPParamsHKD Identity (ShelleyEra c)) where
   fromCBOR = do
-    decodeRecordNamed "ShelleyPParams" (const 18) . fmap Core.PParams $
+    decodeRecordNamed "ShelleyPParams" (const 18) $
       ShelleyPParams @Identity
         <$> fromCBOR -- _minfeeA         :: Integer
         <*> fromCBOR -- _minfeeB         :: Natural
@@ -277,7 +252,7 @@ instance CC.Crypto c => FromCBOR (Core.PParams (ShelleyEra c)) where
         <*> fromCBOR -- _minUTxOValue    :: Natural
         <*> fromCBOR -- _minPoolCost     :: Natural
 
-instance ToJSON (ShelleyPParams era) where
+instance ToJSON (ShelleyPParamsHKD Identity era) where
   toJSON pp =
     Aeson.object
       [ "minFeeA" .= minfeeA pp,
@@ -299,7 +274,7 @@ instance ToJSON (ShelleyPParams era) where
         "minPoolCost" .= minPoolCost pp
       ]
 
-instance FromJSON (ShelleyPParams era) where
+instance FromJSON (ShelleyPParamsHKD Identity era) where
   parseJSON =
     Aeson.withObject "ShelleyPParams" $ \obj ->
       ShelleyPParams
@@ -321,28 +296,27 @@ instance FromJSON (ShelleyPParams era) where
         <*> obj .:? "minUTxOValue" .!= mempty
         <*> obj .:? "minPoolCost" .!= mempty
 
-instance Default (Core.PParams (ShelleyEra c)) where
+instance Default (ShelleyPParamsHKD Identity (ShelleyEra c)) where
   def =
-    Core.PParams $
-      ShelleyPParams
-        { minfeeA = 0,
-          minfeeB = 0,
-          maxBBSize = 0,
-          maxTxSize = 2048,
-          maxBHSize = 0,
-          keyDeposit = Coin 0,
-          poolDeposit = Coin 0,
-          eMax = EpochNo 0,
-          nOpt = 100,
-          a0 = minBound,
-          rho = minBound,
-          tau = minBound,
-          d = minBound,
-          extraEntropy = NeutralNonce,
-          protocolVersion = BT.ProtVer 0 0,
-          minUTxOValue = mempty,
-          minPoolCost = mempty
-        }
+    ShelleyPParams
+      { minfeeA = 0,
+        minfeeB = 0,
+        maxBBSize = 0,
+        maxTxSize = 2048,
+        maxBHSize = 0,
+        keyDeposit = Coin 0,
+        poolDeposit = Coin 0,
+        eMax = EpochNo 0,
+        nOpt = 100,
+        a0 = minBound,
+        rho = minBound,
+        tau = minBound,
+        d = minBound,
+        extraEntropy = NeutralNonce,
+        protocolVersion = BT.ProtVer 0 0,
+        minUTxOValue = mempty,
+        minPoolCost = mempty
+      }
 
 -- | Update Proposal
 data Update era
@@ -382,35 +356,35 @@ instance NFData (ShelleyPParamsHKD StrictMaybe era)
 
 instance NoThunks (PParamsUpdate era)
 
-instance CC.Crypto c => ToCBOR (Core.PParamsUpdate (ShelleyEra c)) where
+instance CC.Crypto c => ToCBOR (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
   toCBOR ppup =
     let l =
           mapMaybe
             strictMaybeToMaybe
-            [ encodeMapElement 0 toCBOR =<< ppup ^. Core.ppuMinFeeAL,
-              encodeMapElement 1 toCBOR =<< ppup ^. Core.ppuMinFeeBL,
-              encodeMapElement 2 toCBOR =<< ppup ^. Core.ppuMaxBBSizeL,
-              encodeMapElement 3 toCBOR =<< ppup ^. Core.ppuMaxTxSizeL,
-              encodeMapElement 4 toCBOR =<< ppup ^. Core.ppuMaxBHSizeL,
-              encodeMapElement 5 toCBOR =<< ppup ^. Core.ppuKeyDepositL,
-              encodeMapElement 6 toCBOR =<< ppup ^. Core.ppuPoolDepositL,
-              encodeMapElement 7 toCBOR =<< ppup ^. Core.ppuEMaxL,
-              encodeMapElement 8 toCBOR =<< ppup ^. Core.ppuNOptL,
-              encodeMapElement 9 toCBOR =<< ppup ^. Core.ppuA0L,
-              encodeMapElement 10 toCBOR =<< ppup ^. Core.ppuRhoL,
-              encodeMapElement 11 toCBOR =<< ppup ^. Core.ppuTauL,
-              encodeMapElement 12 toCBOR =<< ppup ^. Core.ppuDL,
-              encodeMapElement 13 toCBOR =<< ppup ^. Core.ppuExtraEntropyL,
-              encodeMapElement 14 toCBOR =<< ppup ^. Core.ppuProtocolVersionL,
-              encodeMapElement 15 toCBOR =<< ppup ^. Core.ppuMinUTxOValueL,
-              encodeMapElement 16 toCBOR =<< ppup ^. Core.ppuMinPoolCostL
+            [ encodeMapElement 0 toCBOR =<< minfeeA ppup,
+              encodeMapElement 1 toCBOR =<< minfeeB ppup,
+              encodeMapElement 2 toCBOR =<< maxBBSize ppup,
+              encodeMapElement 3 toCBOR =<< maxTxSize ppup,
+              encodeMapElement 4 toCBOR =<< maxBHSize ppup,
+              encodeMapElement 5 toCBOR =<< keyDeposit ppup,
+              encodeMapElement 6 toCBOR =<< poolDeposit ppup,
+              encodeMapElement 7 toCBOR =<< eMax ppup,
+              encodeMapElement 8 toCBOR =<< nOpt ppup,
+              encodeMapElement 9 toCBOR =<< a0 ppup,
+              encodeMapElement 10 toCBOR =<< rho ppup,
+              encodeMapElement 11 toCBOR =<< tau ppup,
+              encodeMapElement 12 toCBOR =<< d ppup,
+              encodeMapElement 13 toCBOR =<< extraEntropy ppup,
+              encodeMapElement 14 toCBOR =<< protocolVersion ppup,
+              encodeMapElement 15 toCBOR =<< minUTxOValue ppup,
+              encodeMapElement 16 toCBOR =<< minPoolCost ppup
             ]
         n = fromIntegral $ length l
      in encodeMapLen n <> fold l
     where
       encodeMapElement ix encoder x = SJust (encodeWord ix <> encoder x)
 
-instance Default (ShelleyPParamsHKD StrictMaybe era) where
+instance Default (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
   def =
     ShelleyPParams
       { minfeeA = SNothing,
@@ -432,7 +406,7 @@ instance Default (ShelleyPParamsHKD StrictMaybe era) where
         minPoolCost = SNothing
       }
 
-instance CC.Crypto c => FromCBOR (Core.PParamsUpdate (ShelleyEra c)) where
+instance CC.Crypto c => FromCBOR (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
   fromCBOR = do
     mapParts <-
       decodeMapContents $
@@ -459,7 +433,7 @@ instance CC.Crypto c => FromCBOR (Core.PParamsUpdate (ShelleyEra c)) where
     unless
       (nub fields == fields)
       (fail $ "duplicate keys: " <> show fields)
-    pure . Core.PParamsUpdate $ foldr ($) def (snd <$> mapParts)
+    pure $ foldr ($) def (snd <$> mapParts)
 
 -- | Update operation for protocol parameters structure @PParams
 newtype ProposedPPUpdates era
