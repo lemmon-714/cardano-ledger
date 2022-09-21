@@ -471,8 +471,7 @@ alonzoTxInfo ::
   ( EraTx era,
     AlonzoEraTxBody era,
     Value era ~ MaryValue (EraCrypto era),
-    TxWits era ~ AlonzoTxWits era,
-    HasField "_protocolVersion" (PParams era) ProtVer
+    TxWits era ~ AlonzoTxWits era
   ) =>
   PParams era ->
   Language ->

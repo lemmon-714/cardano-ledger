@@ -102,8 +102,6 @@ evaluateTransactionExecutionUnits ::
     ExtendedUTxO era,
     EraUTxO era,
     ScriptsNeeded era ~ AlonzoScriptsNeeded era,
-    HasField "_maxTxExUnits" (PParams era) ExUnits,
-    HasField "_protocolVersion" (PParams era) ProtVer,
     Script era ~ AlonzoScript era
   ) =>
   PParams era ->

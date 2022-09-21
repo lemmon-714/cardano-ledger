@@ -331,10 +331,7 @@ toCBORForSizeComputation AlonzoTx {body, wits, auxiliaryData} =
 
 alonzoMinFeeTx ::
   ( EraTx era,
-    AlonzoEraTxWits era,
-    HasField "_minfeeA" (PParams era) Natural,
-    HasField "_minfeeB" (PParams era) Natural,
-    HasField "_prices" (PParams era) Prices
+    AlonzoEraTxWits era
   ) =>
   PParams era ->
   Core.Tx era ->
@@ -342,18 +339,15 @@ alonzoMinFeeTx ::
 alonzoMinFeeTx pp tx =
   (tx ^. sizeTxF <×> a pp)
     <+> b pp
-    <+> txscriptfee (getField @"_prices" pp) allExunits
+    <+> txscriptfee (pp ^. ppPricesL) allExunits
   where
-    a protparam = Coin (fromIntegral (getField @"_minfeeA" protparam))
-    b protparam = Coin (fromIntegral (getField @"_minfeeB" protparam))
+    a protparam = Coin (fromIntegral (protparam ^. ppMinfeeAL))
+    b protparam = Coin (fromIntegral (protparam ^. ppMinfeeBL))
     allExunits = totExUnits tx
 
 minfee ::
   ( EraTx era,
-    AlonzoEraTxWits era,
-    HasField "_minfeeA" (PParams era) Natural,
-    HasField "_minfeeB" (PParams era) Natural,
-    HasField "_prices" (PParams era) Prices
+    AlonzoEraTxWits era
   ) =>
   PParams era ->
   Core.Tx era ->

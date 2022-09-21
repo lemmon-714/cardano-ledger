@@ -18,17 +18,33 @@ import Cardano.Binary
   )
 import Cardano.Ledger.Crypto (Crypto)
 import Cardano.Ledger.Era hiding (EraCrypto)
+import Cardano.Ledger.PParams
 import Cardano.Ledger.Shelley (ShelleyEra)
 import Cardano.Ledger.Shelley.API
+  ( EpochState (..),
+    LedgerState (..),
+    NewEpochState (..),
+    PPUPState (..),
+    ProposedPPUpdates (..),
+    ShelleyGenesis (..),
+    ShelleyPParamsHKD (..),
+    ShelleyTx (..),
+    ShelleyTxOut (..),
+    UTxO (..),
+    UTxOState (..),
+    Update,
+  )
 import qualified Cardano.Ledger.Shelley.LedgerState as LS
   ( returnRedeemAddrsToReserves,
   )
-import Cardano.Ledger.Shelley.TxWits (decodeWits)
+import Cardano.Ledger.Shelley.PParams (Update (..))
+import Cardano.Ledger.Shelley.TxWits (ShelleyTxWits (..), decodeWits)
 import Cardano.Ledger.ShelleyMA ()
 import Cardano.Ledger.ShelleyMA.Era (AllegraEra)
 import Control.Monad.Except (throwError)
 import Data.Coerce (coerce)
 import qualified Data.Map.Strict as Map
+import Lens.Micro ((^.))
 
 --------------------------------------------------------------------------------
 -- Translation from Shelley to Allegra
@@ -109,27 +125,50 @@ instance Crypto c => TranslateEra (AllegraEra c) ShelleyGenesis where
 -- Auxiliary instances and functions
 --------------------------------------------------------------------------------
 
-instance Crypto c => TranslateEra (AllegraEra c) (ShelleyPParamsHKD f) where
+instance Crypto c => TranslateEra (AllegraEra c) PParams where
   translateEra _ pp =
-    return $
+    return . PParams $
       ShelleyPParams
-        { _minfeeA = _minfeeA pp,
-          _minfeeB = _minfeeB pp,
-          _maxBBSize = _maxBBSize pp,
-          _maxTxSize = _maxTxSize pp,
-          _maxBHSize = _maxBHSize pp,
-          _keyDeposit = _keyDeposit pp,
-          _poolDeposit = _poolDeposit pp,
-          _eMax = _eMax pp,
-          _nOpt = _nOpt pp,
-          _a0 = _a0 pp,
-          _rho = _rho pp,
-          _tau = _tau pp,
-          _d = _d pp,
-          _extraEntropy = _extraEntropy pp,
-          _protocolVersion = _protocolVersion pp,
-          _minUTxOValue = _minUTxOValue pp,
-          _minPoolCost = _minPoolCost pp
+        { _minfeeA = pp ^. ppMinFeeAL,
+          _minfeeB = pp ^. ppMinFeeBL,
+          _maxBBSize = pp ^. ppMaxBBSizeL,
+          _maxTxSize = pp ^. ppMaxTxSizeL,
+          _maxBHSize = pp ^. ppMaxBHSizeL,
+          _keyDeposit = pp ^. ppKeyDepositL,
+          _poolDeposit = pp ^. ppPoolDepositL,
+          _eMax = pp ^. ppEMaxL,
+          _nOpt = pp ^. ppNOptL,
+          _a0 = pp ^. ppA0L,
+          _rho = pp ^. ppRhoL,
+          _tau = pp ^. ppTauL,
+          _d = pp ^. ppDL,
+          _extraEntropy = pp ^. ppExtraEntropyL,
+          _protocolVersion = pp ^. ppProtocolVersionL,
+          _minUTxOValue = pp ^. ppMinUTxOValueL,
+          _minPoolCost = pp ^. ppMinPoolCostL
+        }
+
+instance Crypto c => TranslateEra (AllegraEra c) PParamsUpdate where
+  translateEra _ ppu =
+    return . PParamsUpdate $
+      ShelleyPParams
+        { _minfeeA = ppu ^. ppuMinFeeAL,
+          _minfeeB = ppu ^. ppuMinFeeBL,
+          _maxBBSize = ppu ^. ppuMaxBBSizeL,
+          _maxTxSize = ppu ^. ppuMaxTxSizeL,
+          _maxBHSize = ppu ^. ppuMaxBHSizeL,
+          _keyDeposit = ppu ^. ppuKeyDepositL,
+          _poolDeposit = ppu ^. ppuPoolDepositL,
+          _eMax = ppu ^. ppuEMaxL,
+          _nOpt = ppu ^. ppuNOptL,
+          _a0 = ppu ^. ppuA0L,
+          _rho = ppu ^. ppuRhoL,
+          _tau = ppu ^. ppuTauL,
+          _d = ppu ^. ppuDL,
+          _extraEntropy = ppu ^. ppuExtraEntropyL,
+          _protocolVersion = ppu ^. ppuProtocolVersionL,
+          _minUTxOValue = ppu ^. ppuMinUTxOValueL,
+          _minPoolCost = ppu ^. ppuMinPoolCostL
         }
 
 instance Crypto c => TranslateEra (AllegraEra c) ProposedPPUpdates where

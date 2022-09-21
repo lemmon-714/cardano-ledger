@@ -14,7 +14,6 @@ module Cardano.Ledger.ShelleyMA
     ShelleyTxOut,
     MATxBody,
     AllegraTxAuxData,
-    ShelleyPParams,
 
     -- * Deprecated
     Tx,
@@ -22,6 +21,7 @@ module Cardano.Ledger.ShelleyMA
     TxBody,
     PParams,
     AuxiliaryData,
+    ShelleyPParams,
   )
 where
 

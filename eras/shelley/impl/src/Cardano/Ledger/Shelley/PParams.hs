@@ -208,7 +208,7 @@ deriving instance Ord (ShelleyPParamsHKD Identity era)
 
 instance NoThunks (ShelleyPParamsHKD Identity era)
 
-instance CC.Crypto c => ToCBOR (ShelleyPParamsHKD Identity (ShelleyEra c)) where
+instance Era era => ToCBOR (ShelleyPParamsHKD Identity era) where
   toCBOR
     ShelleyPParams {..} =
       encodeListLen 18
@@ -230,7 +230,7 @@ instance CC.Crypto c => ToCBOR (ShelleyPParamsHKD Identity (ShelleyEra c)) where
         <> toCBOR _minUTxOValue
         <> toCBOR _minPoolCost
 
-instance CC.Crypto c => FromCBOR (ShelleyPParamsHKD Identity (ShelleyEra c)) where
+instance Era era => FromCBOR (ShelleyPParamsHKD Identity era) where
   fromCBOR = do
     decodeRecordNamed "ShelleyPParams" (const 18) $
       ShelleyPParams @Identity
@@ -296,7 +296,7 @@ instance FromJSON (ShelleyPParamsHKD Identity era) where
         <*> obj .:? "minUTxOValue" .!= mempty
         <*> obj .:? "minPoolCost" .!= mempty
 
-instance Default (ShelleyPParamsHKD Identity (ShelleyEra c)) where
+instance Default (ShelleyPParamsHKD Identity era) where
   def =
     ShelleyPParams
       { _minfeeA = 0,
@@ -356,7 +356,7 @@ instance NFData (ShelleyPParamsHKD StrictMaybe era)
 
 instance NoThunks (PParamsUpdate era)
 
-instance CC.Crypto c => ToCBOR (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
+instance Era era => ToCBOR (ShelleyPParamsHKD StrictMaybe era) where
   toCBOR ppup =
     let l =
           mapMaybe
@@ -384,7 +384,7 @@ instance CC.Crypto c => ToCBOR (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) wh
     where
       encodeMapElement ix encoder x = SJust (encodeWord ix <> encoder x)
 
-instance Default (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
+instance Default (ShelleyPParamsHKD StrictMaybe era) where
   def =
     ShelleyPParams
       { _minfeeA = SNothing,
@@ -406,7 +406,7 @@ instance Default (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
         _minPoolCost = SNothing
       }
 
-instance CC.Crypto c => FromCBOR (ShelleyPParamsHKD StrictMaybe (ShelleyEra c)) where
+instance Era era => FromCBOR (ShelleyPParamsHKD StrictMaybe era) where
   fromCBOR = do
     mapParts <-
       decodeMapContents $

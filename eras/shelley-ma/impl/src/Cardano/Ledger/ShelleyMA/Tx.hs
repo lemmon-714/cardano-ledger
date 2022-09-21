@@ -16,7 +16,6 @@ where
 import Cardano.Ledger.Core (EraTx (..), EraTxWits (..), PhasedScript (..))
 import Cardano.Ledger.Crypto (StandardCrypto)
 import Cardano.Ledger.Keys.WitVKey (witVKeyHash)
-import Cardano.Ledger.Shelley.PParams (ShelleyPParamsHKD (..))
 import Cardano.Ledger.Shelley.Tx
   ( ShelleyTx,
     auxDataShelleyTxL,

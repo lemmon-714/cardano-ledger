@@ -28,11 +28,6 @@ module Cardano.Ledger.Alonzo.PParams
     encodeLangViews,
     retractPP,
     extendPP,
-
-    -- * Deprecated
-    PParams',
-    PParams,
-    PParamsUpdate,
   )
 where
 
@@ -65,13 +60,12 @@ import Cardano.Ledger.BaseTypes
   )
 import qualified Cardano.Ledger.BaseTypes as BT (ProtVer (..))
 import Cardano.Ledger.Coin (Coin (..))
-import Cardano.Ledger.Core hiding (PParams, PParamsUpdate)
 import qualified Cardano.Ledger.Core as Core
 import qualified Cardano.Ledger.Crypto as CC
 import Cardano.Ledger.HKD (HKD)
 import Cardano.Ledger.Serialization (FromCBORGroup (..), ToCBORGroup (..))
 import Cardano.Ledger.Shelley.Orphans ()
-import Cardano.Ledger.Shelley.PParams (ShelleyPParamsHKD (ShelleyPParams))
+import Cardano.Ledger.Shelley.PParams (ShelleyPParamsHKD (ShelleyPParams), _minUTxOValue)
 import Cardano.Ledger.Slot (EpochNo (..))
 import Control.DeepSeq (NFData)
 import Data.ByteString (ByteString)
@@ -99,18 +93,8 @@ import qualified Data.Set as Set
 import GHC.Generics (Generic)
 import NoThunks.Class (NoThunks (..))
 import Numeric.Natural (Natural)
-
-type PParams era = AlonzoPParams era
-
-{-# DEPRECATED PParams "Use `AlonzoPParams` instead" #-}
-
-type PParams' f era = AlonzoPParamsHKD f era
-
-{-# DEPRECATED PParams' "Use `AlonzoPParamsHKD` instead" #-}
-
-type PParamsUpdate era = AlonzoPParamsUpdate era
-
-{-# DEPRECATED PParamsUpdate "Use `AlonzoPParamsUpdate` instead" #-}
+import Cardano.Ledger.PParams (EraPParams)
+import Lens.Micro (lens)
 
 -- | Protocol parameters.
 -- Shelley parameters + additional ones
@@ -177,41 +161,40 @@ type AlonzoPParams era = AlonzoPParamsHKD Identity era
 type AlonzoPParamsUpdate era = AlonzoPParamsHKD StrictMaybe era
 
 instance CC.Crypto c => EraPParams (AlonzoEra c) where
-  type PParams (AlonzoEra c) = AlonzoPParams (AlonzoEra c)
-  type PParamsUpdate (AlonzoEra c) = AlonzoPParamsUpdate (AlonzoEra c)
+  type PParamsHKD f (AlonzoEra c) = AlonzoPParamsHKD f (AlonzoEra c)
 
   emptyPParams = def
   emptyPParamsUpdate = def
 
   applyPPUpdates = updatePParams
 
-  ppMinFeeAL = lens _minfeeA $ \pp x -> pp{_minfeeA = x}
-  ppMinFeeBL = lens _minfeeB $ \pp x -> pp{_minfeeB = x}
-  maxBBSizeL = lens _maxBBSize $ \pp x -> pp{_maxBBSize = x}
-  maxTxSizeL = lens _maxTxSize $ \pp x -> pp{_maxTxSize = x}
-  maxBHSizeL = lens _maxBHSize $ \pp x -> pp{_maxBHSize = x}
-  keyDepositL = lens _keyDeposit $ \pp x -> pp{_keyDeposit = x}
-  poolDepositL = lens _poolDeposit $ \pp x -> pp{_poolDeposit = x}
-  eMaxL = lens _eMax $ \pp x -> pp{_eMax = x}
-  nOptL = lens _nOpt $ \pp x -> pp{_nOpt = x}
-  a0L = lens _a0 $ \pp x -> pp{_a0 = x}
-  rhoL = lens _rho $ \pp x -> pp{_rho = x}
-  tauL = lens _tau $ \pp x -> pp{_tau = x}
-  dL = lens _d $ \pp x -> pp{_d = x}
-  extraEntropyL = lens _extraEntropy $ \pp x -> pp{_extraEntropy = x}
-  protocolVersionL = lens _protocolVersion $ \pp x -> pp{_protocolVersion = x}
-  minUTxOValueL = lens _minUTxOValue $ \pp x -> pp{_minUTxOValue = x}
-  minPoolCostL = lens _minPoolCost $ \pp x -> pp{_minPoolCost = x}
+  hkdMinFeeAL = lens _minfeeA $ \pp x -> pp{_minfeeA = x}
+  hkdMinFeeBL = lens _minfeeB $ \pp x -> pp{_minfeeB = x}
+  hkdMaxBBSizeL = lens _maxBBSize $ \pp x -> pp{_maxBBSize = x}
+  hkdMaxTxSizeL = lens _maxTxSize $ \pp x -> pp{_maxTxSize = x}
+  hkdMaxBHSizeL = lens _maxBHSize $ \pp x -> pp{_maxBHSize = x}
+  hkdKeyDepositL = lens _keyDeposit $ \pp x -> pp{_keyDeposit = x}
+  hkdPoolDepositL = lens _poolDeposit $ \pp x -> pp{_poolDeposit = x}
+  hkdEMaxL = lens _eMax $ \pp x -> pp{_eMax = x}
+  hkdNOptL = lens _nOpt $ \pp x -> pp{_nOpt = x}
+  hkdA0L = lens _a0 $ \pp x -> pp{_a0 = x}
+  hkdRhoL = lens _rho $ \pp x -> pp{_rho = x}
+  hkdTauL = lens _tau $ \pp x -> pp{_tau = x}
+  hkdDL = lens _d $ \pp x -> pp{_d = x}
+  hkdExtraEntropyL = lens _extraEntropy $ \pp x -> pp{_extraEntropy = x}
+  hkdProtocolVersionL = lens _protocolVersion $ \pp x -> pp{_protocolVersion = x}
+  hkdMinUTxOValueL = lens _minUTxOValue $ \pp x -> pp{_minUTxOValue = x}
+  hkdMinPoolCostL = lens _minPoolCost $ \pp x -> pp{_minPoolCost = x}
 
-deriving instance Eq (PParams' Identity era)
+deriving instance Eq (AlonzoPParamsHKD Identity era)
 
-deriving instance Show (PParams' Identity era)
+deriving instance Show (AlonzoPParamsHKD Identity era)
 
-deriving instance NFData (PParams' Identity era)
+deriving instance NFData (AlonzoPParamsHKD Identity era)
 
-instance NoThunks (PParams era)
+instance NoThunks (AlonzoPParamsHKD Identity era)
 
-instance (Era era) => ToCBOR (PParams era) where
+instance ToCBOR (AlonzoPParamsHKD Identity era) where
   toCBOR
     AlonzoPParams
       { _minfeeA = minfeeA',
@@ -270,8 +253,7 @@ instance (Era era) => ToCBOR (PParams era) where
         )
 
 instance
-  (Era era) =>
-  FromCBOR (PParams era)
+  FromCBOR (AlonzoPParamsHKD Identity era)
   where
   fromCBOR =
     decode $
@@ -303,7 +285,7 @@ instance
         <! From -- maxCollateralInputs :: Natural
 
 -- | Returns a basic "empty" `PParams` structure with all zero values.
-emptyPParams :: PParams era
+emptyPParams :: AlonzoPParamsHKD Identity era
 emptyPParams =
   AlonzoPParams
     { _minfeeA = 0,
@@ -366,7 +348,7 @@ compareEx SNothing (SJust _) = LT
 compareEx (SJust _) SNothing = GT
 compareEx (SJust (ExUnits m1 s1)) (SJust (ExUnits m2 s2)) = compare (m1, s1) (m2, s2)
 
-instance Default (PParams era) where
+instance Default (AlonzoPParamsHKD Identity era) where
   def = emptyPParams
 
 deriving instance Eq (AlonzoPParamsHKD StrictMaybe era)
@@ -420,10 +402,10 @@ encodePParamsUpdate ppup =
     fromSJust (SJust x) = x
     fromSJust SNothing = error "SNothing in fromSJust. This should never happen, it is guarded by isSNothing."
 
-instance (Era era) => ToCBOR (PParamsUpdate era) where
+instance ToCBOR (AlonzoPParamsHKD StrictMaybe era) where
   toCBOR ppup = encode (encodePParamsUpdate ppup)
 
-emptyPParamsUpdate :: PParamsUpdate era
+emptyPParamsUpdate :: AlonzoPParamsHKD StrictMaybe era
 emptyPParamsUpdate =
   AlonzoPParams
     { _minfeeA = SNothing,
@@ -453,7 +435,7 @@ emptyPParamsUpdate =
       _maxCollateralInputs = SNothing
     }
 
-updateField :: Word -> Field (PParamsUpdate era)
+updateField :: Word -> Field (AlonzoPParamsHKD StrictMaybe era)
 updateField 0 = field (\x up -> up {_minfeeA = SJust x}) From
 updateField 1 = field (\x up -> up {_minfeeB = SJust x}) From
 updateField 2 = field (\x up -> up {_maxBBSize = SJust x}) From
@@ -480,7 +462,7 @@ updateField 23 = field (\x up -> up {_collateralPercentage = SJust x}) From
 updateField 24 = field (\x up -> up {_maxCollateralInputs = SJust x}) From
 updateField k = field (\_x up -> up) (Invalid k)
 
-instance (Era era) => FromCBOR (PParamsUpdate era) where
+instance FromCBOR (AlonzoPParamsHKD StrictMaybe era) where
   fromCBOR =
     decode
       (SparseKeyed "PParamsUpdate" emptyPParamsUpdate updateField [])
@@ -488,8 +470,8 @@ instance (Era era) => FromCBOR (PParamsUpdate era) where
 -- =================================================================
 
 -- | Update operation for protocol parameters structure @PParams
-updatePParams :: PParams era -> PParamsUpdate era -> PParams era
-updatePParams pp ppup =
+updatePParams :: Core.PParams era -> Core.PParamsUpdate era -> Core.PParams era
+updatePParams pp ppup = Core.PParams $
   AlonzoPParams
     { _minfeeA = fromSMaybe (_minfeeA pp) (_minfeeA ppup),
       _minfeeB = fromSMaybe (_minfeeB pp) (_minfeeB ppup),
@@ -538,7 +520,6 @@ legacyNonCanonicalCostModelEncoder = encodeFoldableAsIndefinite . getCostModelPa
 
 getLanguageView ::
   forall era.
-  (HasField "_costmdls" (Core.PParams era) CostModels) =>
   Core.PParams era ->
   Language ->
   LangDepView
@@ -548,7 +529,7 @@ getLanguageView pp lang@PlutusV1 =
     ( serialize'
         ( serializeEncoding' $
             maybe encodeNull legacyNonCanonicalCostModelEncoder $
-              Map.lookup lang (unCostModels $ getField @"_costmdls" pp)
+              Map.lookup lang (unCostModels $ pp ^. ppCostmdlsL)
         )
     )
 getLanguageView pp lang@PlutusV2 =
@@ -556,7 +537,7 @@ getLanguageView pp lang@PlutusV2 =
     (serialize' lang)
     ( serializeEncoding' $
         maybe encodeNull toCBOR $
-          Map.lookup lang (unCostModels $ getField @"_costmdls" pp)
+          Map.lookup lang (unCostModels $ pp ^. ppCostmdlsL)
     )
 
 encodeLangViews :: Set LangDepView -> Encoding
@@ -571,14 +552,14 @@ encodeLangViews views = encodeMapLen n <> foldMap encPair ascending
       | BS.length a > BS.length b = GT
       | otherwise = compare a b
 
--- | Turn an PParams' into a ShelleyParams'
+-- | Turn an AlonzoPParamsHKD into a ShelleyParams'
 retractPP :: HKD f Coin -> AlonzoPParamsHKD f era2 -> ShelleyPParamsHKD f era1
 retractPP
   c
   (AlonzoPParams ma mb mxBB mxT mxBH kd pd emx a n rho tau d eE pv mnP _ _ _ _ _ _ _ _) =
     ShelleyPParams ma mb mxBB mxT mxBH kd pd emx a n rho tau d eE pv c mnP
 
--- | Given the missing pieces Turn a ShelleyPParams' into an Params'
+-- | Given the missing pieces Turn a ShelleyAlonzoPParamsHKD into an Params'
 extendPP ::
   ShelleyPParamsHKD f era1 ->
   HKD f Coin ->
@@ -589,7 +570,7 @@ extendPP ::
   HKD f Natural ->
   HKD f Natural ->
   HKD f Natural ->
-  PParams' f era2
+  AlonzoPParamsHKD f era2
 extendPP
   (ShelleyPParams ma mb mxBB mxT mxBH kd pd emx a n rho tau d eE pv _ mnP)
   ada

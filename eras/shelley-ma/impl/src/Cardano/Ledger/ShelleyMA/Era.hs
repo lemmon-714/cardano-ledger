@@ -22,8 +22,7 @@ import Cardano.Ledger.Compactible (CompactForm, Compactible)
 import Cardano.Ledger.Core
 import Cardano.Ledger.Crypto as CC (Crypto)
 import Cardano.Ledger.Mary.Value (MaryValue (..), MultiAsset (..), policies, policyID)
-import qualified Cardano.Ledger.Shelley.API as API
-import Cardano.Ledger.Shelley.PParams (ShelleyPParams, ShelleyPParamsUpdate, updatePParams, ShelleyPParamsHKD (..))
+import Cardano.Ledger.Shelley.PParams (updatePParams, ShelleyPParamsHKD (..))
 import Cardano.Ledger.Shelley.Rules
   ( ShelleyBBODY,
     ShelleyEPOCH,
@@ -43,6 +42,7 @@ import GHC.TypeLits
 import NoThunks.Class (NoThunks)
 import Lens.Micro (lens)
 import Data.Default (def)
+import qualified Cardano.Ledger.Shelley.API as API
 
 type MaryEra = ShelleyMAEra 'Mary
 
@@ -110,31 +110,30 @@ type family MAProtVer (ma :: MaryOrAllegra) :: Nat where
 type instance Value (ShelleyMAEra ma c) = MAValue ma c
 
 instance MAClass ma c => EraPParams (ShelleyMAEra ma c) where
-  type PParams (ShelleyMAEra ma c) = ShelleyPParams (ShelleyMAEra ma c)
-  type PParamsUpdate (ShelleyMAEra ma c) = ShelleyPParamsUpdate (ShelleyMAEra ma c)
+  type PParamsHKD f (ShelleyMAEra ma c) = ShelleyPParamsHKD f (ShelleyMAEra ma c)
 
   emptyPParams = def
   emptyPParamsUpdate = def
 
   applyPPUpdates = updatePParams
 
-  ppMinFeeAL = lens _minfeeA $ \pp x -> pp{_minfeeA = x}
-  ppMinFeeBL = lens _minfeeB $ \pp x -> pp{_minfeeB = x}
-  maxBBSizeL = lens _maxBBSize $ \pp x -> pp{_maxBBSize = x}
-  maxTxSizeL = lens _maxTxSize $ \pp x -> pp{_maxTxSize = x}
-  maxBHSizeL = lens _maxBHSize $ \pp x -> pp{_maxBHSize = x}
-  keyDepositL = lens _keyDeposit $ \pp x -> pp{_keyDeposit = x}
-  poolDepositL = lens _poolDeposit $ \pp x -> pp{_poolDeposit = x}
-  eMaxL = lens _eMax $ \pp x -> pp{_eMax = x}
-  nOptL = lens _nOpt $ \pp x -> pp{_nOpt = x}
-  a0L = lens _a0 $ \pp x -> pp{_a0 = x}
-  rhoL = lens _rho $ \pp x -> pp{_rho = x}
-  tauL = lens _tau $ \pp x -> pp{_tau = x}
-  dL = lens _d $ \pp x -> pp{_d = x}
-  extraEntropyL = lens _extraEntropy $ \pp x -> pp{_extraEntropy = x}
-  protocolVersionL = lens _protocolVersion $ \pp x -> pp{_protocolVersion = x}
-  minUTxOValueL = lens _minUTxOValue $ \pp x -> pp{_minUTxOValue = x}
-  minPoolCostL = lens _minPoolCost $ \pp x -> pp{_minPoolCost = x}
+  hkdMinFeeAL = lens _minfeeA $ \pp x -> pp{_minfeeA = x}
+  hkdMinFeeBL = lens _minfeeB $ \pp x -> pp{_minfeeB = x}
+  hkdMaxBBSizeL = lens _maxBBSize $ \pp x -> pp{_maxBBSize = x}
+  hkdMaxTxSizeL = lens _maxTxSize $ \pp x -> pp{_maxTxSize = x}
+  hkdMaxBHSizeL = lens _maxBHSize $ \pp x -> pp{_maxBHSize = x}
+  hkdKeyDepositL = lens _keyDeposit $ \pp x -> pp{_keyDeposit = x}
+  hkdPoolDepositL = lens _poolDeposit $ \pp x -> pp{_poolDeposit = x}
+  hkdEMaxL = lens _eMax $ \pp x -> pp{_eMax = x}
+  hkdNOptL = lens _nOpt $ \pp x -> pp{_nOpt = x}
+  hkdA0L = lens _a0 $ \pp x -> pp{_a0 = x}
+  hkdRhoL = lens _rho $ \pp x -> pp{_rho = x}
+  hkdTauL = lens _tau $ \pp x -> pp{_tau = x}
+  hkdDL = lens _d $ \pp x -> pp{_d = x}
+  hkdExtraEntropyL = lens _extraEntropy $ \pp x -> pp{_extraEntropy = x}
+  hkdProtocolVersionL = lens _protocolVersion $ \pp x -> pp{_protocolVersion = x}
+  hkdMinUTxOValueL = lens _minUTxOValue $ \pp x -> pp{_minUTxOValue = x}
+  hkdMinPoolCostL = lens _minPoolCost $ \pp x -> pp{_minPoolCost = x}
 
 -- These rules are all inherited from Shelley
 
