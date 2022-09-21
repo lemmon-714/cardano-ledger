@@ -1,10 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -66,7 +64,6 @@ import Cardano.Ledger.HKD (HKD)
 import Cardano.Ledger.Slot (EpochNo (..))
 import Control.DeepSeq (NFData)
 import Control.Monad.Identity (Identity)
-import Data.Default.Class (Default)
 import Data.Kind (Type)
 import Data.Maybe.Strict (StrictMaybe)
 import GHC.Natural (Natural)
@@ -76,56 +73,8 @@ import NoThunks.Class (NoThunks)
 -- | Protocol parameters
 newtype PParams era = PParams (PParamsHKD Identity era)
 
-deriving newtype instance
-  Eq (PParamsHKD Identity era) => Eq (PParams era)
-
-deriving newtype instance 
-  Default (PParamsHKD Identity era) => Default (PParams era)
-
-deriving newtype instance 
-  Show (PParamsHKD Identity era) => Show (PParams era)
-
-deriving newtype instance 
-  Ord (PParamsHKD Identity era) => Ord (PParams era)
-
-deriving newtype instance 
-  NFData (PParamsHKD Identity era) => NFData (PParams era)
-
-deriving newtype instance 
-  (Era era, FromCBOR (PParamsHKD Identity era)) => FromCBOR (PParams era)
-
-deriving newtype instance 
-  (Era era, ToCBOR (PParamsHKD Identity era)) => ToCBOR (PParams era)
-
-deriving newtype instance 
-  (Era era, NoThunks (PParamsHKD Identity era)) => NoThunks (PParams era)
-
 -- | The type of updates to Protocol parameters
 newtype PParamsUpdate era = PParamsUpdate (PParamsHKD StrictMaybe era)
-
-deriving newtype instance 
-  Eq (PParamsHKD StrictMaybe era) => Eq (PParamsUpdate era)
-
-deriving newtype instance 
-  Default (PParamsHKD StrictMaybe era) => Default (PParamsUpdate era)
-
-deriving newtype instance 
-  Show (PParamsHKD StrictMaybe era) => Show (PParamsUpdate era)
-
-deriving newtype instance 
-  Ord (PParamsHKD StrictMaybe era) => Ord (PParamsUpdate era)
-
-deriving newtype instance 
-  NFData (PParamsHKD StrictMaybe era) => NFData (PParamsUpdate era)
-
-deriving newtype instance 
-  (FromCBOR (PParamsHKD StrictMaybe era), Era era) => FromCBOR (PParamsUpdate era)
-
-deriving newtype instance 
-  (ToCBOR (PParamsHKD StrictMaybe era), Era era) => ToCBOR (PParamsUpdate era)
-
-deriving newtype instance 
-  (NoThunks (PParamsHKD StrictMaybe era), Era era) => NoThunks (PParamsUpdate era)
 
 class
   ( Era era,
