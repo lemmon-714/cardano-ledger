@@ -90,8 +90,7 @@ import Cardano.Ledger.Shelley.LedgerState
     updateNonMyopic,
   )
 import Cardano.Ledger.Shelley.PParams
-  ( ShelleyPParams,
-    ShelleyPParamsHKD (..),
+  ( ShelleyPParamsHKD (..),
     emptyPParams,
   )
 import Cardano.Ledger.Shelley.PoolRank (Likelihood, leaderProbability, likelihood)
@@ -382,11 +381,6 @@ rewardsBoundedByPot _ = property $ do
 -- change the result of reward calculation. we reproduce the old style functions here.
 
 rewardOnePool ::
-  ( HasField "_d" (Core.PParams era) UnitInterval,
-    HasField "_a0" (Core.PParams era) NonNegativeInterval,
-    HasField "_nOpt" (Core.PParams era) Natural,
-    HasField "_protocolVersion" (Core.PParams era) ProtVer
-  ) =>
   Core.PParams era ->
   Coin ->
   Natural ->
@@ -623,7 +617,6 @@ createRUpdOld_ slotsPerEpoch b@(BlocksMade b') ss (Coin reserves) pr totalStake 
       }
 
 overrideProtocolVersionUsedInRewardCalc ::
-  Core.PParams era ~ ShelleyPParams era =>
   ProtVer ->
   EpochState era ->
   EpochState era
@@ -635,8 +628,7 @@ overrideProtocolVersionUsedInRewardCalc pv es =
 
 oldEqualsNew ::
   forall era.
-  ( era ~ C,
-    Core.PParams era ~ ShelleyPParams era
+  ( era ~ C
   ) =>
   ProtVer ->
   NewEpochState era ->
@@ -665,8 +657,7 @@ oldEqualsNew pv newepochstate =
 
 oldEqualsNewOn ::
   forall era.
-  ( era ~ C,
-    Core.PParams era ~ ShelleyPParams era
+  ( era ~ C
   ) =>
   ProtVer ->
   NewEpochState era ->
@@ -772,7 +763,6 @@ instance PrettyA (Reward c) where
 
 reward ::
   forall era.
-  (Core.PParams era ~ ShelleyPParams era) =>
   Core.PParams era ->
   BlocksMade (EraCrypto era) ->
   Coin ->

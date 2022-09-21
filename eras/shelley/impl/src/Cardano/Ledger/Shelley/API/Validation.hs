@@ -172,7 +172,7 @@ type ShelleyEraCrypto c =
 {-# DEPRECATED ShelleyEraCrypto "Constraint synonyms are being removed" #-}
 
 instance
-  ( EraPParams era,
+  ( CC.Crypto c,
     DSignable c (Hash c EraIndependentTxBody)
   ) =>
   ApplyBlock (ShelleyEra c)

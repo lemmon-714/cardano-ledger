@@ -64,7 +64,6 @@ import Cardano.Ledger.Shelley.LedgerState.Types
   )
 import Cardano.Ledger.Shelley.PParams
   ( PPUPState (..),
-    ShelleyPParams,
     Update,
   )
 import Cardano.Ledger.Shelley.Rules.Ppup
@@ -302,7 +301,6 @@ instance
     Show (TxWits era),
     Show (PParamsUpdate era),
     TxBody era ~ ShelleyTxBody era,
-    PParams era ~ ShelleyPParams era,
     Tx era ~ ShelleyTx era,
     Value era ~ Coin,
     Show (ShelleyTx era),

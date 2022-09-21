@@ -116,7 +116,6 @@ library
     iproute,
     mtl,
     microlens,
-    microlens-mtl,
     nothunks,
     quiet,
     set-algebra,
