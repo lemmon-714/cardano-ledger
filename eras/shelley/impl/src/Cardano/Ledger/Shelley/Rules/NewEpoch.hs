@@ -18,6 +18,11 @@ module Cardano.Ledger.Shelley.Rules.NewEpoch
     PredicateFailure,
     calculatePoolDistr,
     calculatePoolDistr',
+    calculatePoolDistr2,
+    calculatePoolDistr3,
+    SnapShot2(..),
+    oldStyleToNewStyle,
+    calculatePoolDistrNew,
   )
 where
 
@@ -27,11 +32,11 @@ import Cardano.Ledger.BaseTypes
     ShelleyBase,
     StrictMaybe (SJust, SNothing),
   )
-import Cardano.Ledger.Coin (Coin (Coin), toDeltaCoin)
+import Cardano.Ledger.Coin (Coin (Coin), toDeltaCoin, CompactForm(CompactCoin))
 import Cardano.Ledger.Compactible (fromCompact)
 import Cardano.Ledger.Core
 import Cardano.Ledger.Credential (Credential)
-import Cardano.Ledger.Keys (KeyHash, KeyRole (StakePool, Staking))
+import Cardano.Ledger.Keys (KeyHash, KeyRole (StakePool, Staking), Hash, VerKeyVRF)
 import Cardano.Ledger.PoolDistr (IndividualPoolStake (..), PoolDistr (..))
 import Cardano.Ledger.Shelley.AdaPots (AdaPots, totalAdaPotsES)
 import Cardano.Ledger.Shelley.EpochBoundary
@@ -203,7 +208,8 @@ tellReward (DeltaRewardEvent (RupdEvent _ m)) | Map.null m = pure ()
 tellReward x = tellEvent x
 
 calculatePoolDistr :: SnapShot c -> PoolDistr c
-calculatePoolDistr = calculatePoolDistr' (const True)
+-- calculatePoolDistr = calculatePoolDistr' (const True)
+calculatePoolDistr = calculatePoolDistr3 
 
 calculatePoolDistr' :: forall c. (KeyHash 'StakePool c -> Bool) -> SnapShot c -> PoolDistr c
 calculatePoolDistr' includeHash (SnapShot stake delegs poolParams) =
@@ -223,6 +229,45 @@ calculatePoolDistr' includeHash (SnapShot stake delegs poolParams) =
           IndividualPoolStake
           sd
           (toMap (VMap.map _poolVrf poolParams))
+
+calculatePoolDistr2 :: forall c. (KeyHash 'StakePool c -> Bool) -> SnapShot c -> PoolDistr c
+calculatePoolDistr2 includeHash (SnapShot stake delegs poolParams) =
+  let Coin total = sumAllStake stake
+      -- total could be zero (in particular when shrinking)
+      nonZeroTotal = if total == 0 then 1 else total
+      sd =
+        Map.fromListWith (+) $
+          [ (d, c % nonZeroTotal)
+            | (hk, d) <- VMap.toAscList delegs
+            , Just compactCoin <- [VMap.lookup hk (unStake stake)]
+            , let Coin c = fromCompact compactCoin
+            , includeHash d
+          ]
+   in PoolDistr $
+        Map.intersectionWith
+          IndividualPoolStake
+          sd
+          (toMap (VMap.map _poolVrf poolParams))
+
+calculatePoolDistr3 :: forall c. SnapShot c -> PoolDistr c
+calculatePoolDistr3 (SnapShot stake delegs poolParams) =
+  let Coin total = sumAllStake stake
+      -- total could be zero (in particular when shrinking)
+      nonZeroTotal :: Integer
+      nonZeroTotal = if total == 0 then 1 else total
+      sd :: Map.Map (KeyHash 'StakePool c) Integer
+      sd = 
+        Map.fromListWith (+) $
+          [ (d, c)
+            | (hk, d) <- VMap.toAscList delegs
+            , Just compactCoin <- [VMap.lookup hk (unStake stake)]
+            , let Coin c = fromCompact compactCoin
+          ]
+   in PoolDistr $
+        Map.intersectionWith
+          (\ c p -> IndividualPoolStake (c % nonZeroTotal) p)
+          sd
+          ((toMap (VMap.map _poolVrf poolParams)) :: Map.Map (KeyHash 'StakePool c) (Hash c (VerKeyVRF c)))
 
 instance
   ( STS (ShelleyEPOCH era),
@@ -244,3 +289,43 @@ instance
   where
   wrapFailed = MirFailure
   wrapEvent = MirEvent
+
+-- ===========================================
+
+-- What are the SnapShots used for?  Just computing the Stake distribution?
+-- If that is the case we might change from SnapShot to SnapShot2
+
+data SnapShot2 c = SnapShot2
+  { _totalStake :: Integer,
+    _delegatedStakeByPool :: Map.Map (KeyHash 'StakePool c) Integer,
+    _vrfKeyByPool :: Map.Map (KeyHash 'StakePool c) (Hash c (VerKeyVRF c))
+  }
+
+-- To save space perhaps we want to use  (VMap VB VP) or ( VMap VB VB) instead of Map
+-- The we would need a VMap.intersectionWith in calculatePoolDistrNew below
+-- Notice SnapShot2 can be computed from SnapShot as a pure function
+
+oldStyleToNewStyle :: SnapShot c -> SnapShot2 c
+oldStyleToNewStyle (SnapShot stake delegs poolParams) = SnapShot2 nonZeroTotal sd vrf
+  where total = sumAllStake2 stake
+        nonZeroTotal = if total == 0 then 1 else total
+        sd = 
+          Map.fromListWith (+) $
+            [ (d, c)
+            | (hk, d) <- VMap.toAscList delegs
+            , Just compactCoin <- [VMap.lookup hk (unStake stake)]
+                  -- IS THIS NECESSARY, I think all the stake are active, see
+                  -- step2 = aggregateActiveStake tripmap step1
+                  -- in Cardano.Ledger.Shelley.LedgerState.IncrementalStake(incrementalStakeDistr)
+                  -- in which case we don't need the  _delegatedStakeByPool  field
+            , let Coin c = fromCompact compactCoin
+            ]
+        vrf = toMap (VMap.map _poolVrf poolParams)
+
+
+calculatePoolDistrNew :: SnapShot2 c -> PoolDistr c
+calculatePoolDistrNew (SnapShot2 nonZeroTotal sd vrf) = PoolDistr $ Map.intersectionWith ratio sd vrf
+   where ratio c p = IndividualPoolStake (c % nonZeroTotal) p
+
+sumAllStake2 :: Stake c -> Integer
+sumAllStake2 = fromIntegral . VMap.foldl (\acc (CompactCoin c) -> acc + c) 0 . unStake
