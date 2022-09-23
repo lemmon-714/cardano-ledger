@@ -62,6 +62,7 @@ library
     Cardano.Ledger.MemoBytes
     Cardano.Ledger.PoolDistr
     Cardano.Ledger.PParams
+    Cardano.Ledger.ProtVer
     Cardano.Ledger.Rules.ValidationMode
     Cardano.Ledger.SafeHash
     Cardano.Ledger.Serialization

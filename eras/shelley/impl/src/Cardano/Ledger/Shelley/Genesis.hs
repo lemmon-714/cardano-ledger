@@ -34,6 +34,7 @@ import Cardano.Ledger.Address
 import Cardano.Ledger.BaseTypes
 import Cardano.Ledger.Coin (Coin)
 import Cardano.Ledger.Core
+import qualified Cardano.Ledger.Core as Core
 import Cardano.Ledger.Crypto (HASH, KES)
 import qualified Cardano.Ledger.Crypto as CC (Crypto)
 import Cardano.Ledger.Keys
@@ -54,6 +55,7 @@ import qualified Cardano.Ledger.Val as Val
 import Cardano.Slotting.EpochInfo (EpochInfo)
 import Cardano.Slotting.Slot (EpochSize (..))
 import Cardano.Slotting.Time (SystemStart (SystemStart))
+import Control.Monad.Identity (Identity)
 import Data.Aeson (FromJSON (..), ToJSON (..), (.!=), (.:), (.:?), (.=))
 import qualified Data.Aeson as Aeson
 import qualified Data.ListMap as LM
@@ -69,7 +71,6 @@ import Data.Word (Word32, Word64)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import NoThunks.Class (NoThunks (..))
-import qualified Cardano.Ledger.Core as Core
 
 -- | Genesis Shelley staking configuration.
 --
@@ -151,12 +152,21 @@ deriving instance EraPParams era => NoThunks (ShelleyGenesis era)
 sgActiveSlotCoeff :: ShelleyGenesis era -> ActiveSlotCoeff
 sgActiveSlotCoeff = mkActiveSlotCoeff . sgActiveSlotsCoeff
 
-instance (Era era, EraPParams era) => ToJSON (ShelleyGenesis era) where
+instance
+  ( Era era,
+    EraPParams era,
+    ToJSON (PParamsHKD Identity era)
+  ) =>
+  ToJSON (ShelleyGenesis era)
+  where
   toJSON = Aeson.object . toShelleyGenesisPairs
   toEncoding = Aeson.pairs . mconcat . toShelleyGenesisPairs
 
 toShelleyGenesisPairs ::
-  (Aeson.KeyValue a, EraPParams era) =>
+  ( Aeson.KeyValue a,
+    EraPParams era,
+    ToJSON (PParamsHKD Identity era)
+  ) =>
   ShelleyGenesis era ->
   [a]
 toShelleyGenesisPairs

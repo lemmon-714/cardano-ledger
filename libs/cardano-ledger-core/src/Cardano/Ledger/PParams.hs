@@ -1,6 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -53,6 +52,10 @@ module Cardano.Ledger.PParams
     ppuProtocolVersionL,
     ppuMinUTxOValueL,
     ppuMinPoolCostL,
+
+    -- * Utility
+    ppLens,
+    ppuLens,
 
     -- * Deprecated
     PParamsDelta,
@@ -150,8 +153,6 @@ class
     NFData (PParamsHKD Identity era),
     ToCBOR (PParamsHKD Identity era),
     FromCBOR (PParamsHKD Identity era),
-    ToJSON (PParamsHKD Identity era),
-    FromJSON (PParamsHKD Identity era),
     NoThunks (PParamsHKD Identity era),
     Eq (PParamsHKD StrictMaybe era),
     Ord (PParamsHKD StrictMaybe era),
@@ -220,7 +221,7 @@ class
   hkdProtocolVersionL :: Lens' (PParamsHKD f era) (HKD f BT.ProtVer)
 
   -- | Minimum UTxO value
-  hkdMinUTxOValueL :: Lens' (PParamsHKD f era) (HKD f Coin)
+  hkdMinUTxOValueL :: AtMostEra MaryEra era => Lens' (PParamsHKD f era) (HKD f Coin)
 
   -- | Minimum Stake Pool Cost
   hkdMinPoolCostL :: Lens' (PParamsHKD f era) (HKD f Coin)
